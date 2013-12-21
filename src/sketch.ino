@@ -50,6 +50,8 @@ unsigned int seed = 0;  // used to initialize random number generator
 
 // enumerate the possible patterns in the order they will cycle
 enum Pattern {
+    SimpleHSV,
+    SymSimpleHSV,
   WarmWhiteShimmer ,
   RandomColorWalk,
   TraditionalColors,
@@ -57,9 +59,10 @@ enum Pattern {
   Gradient,
   BrightTwinkle,
   Collision,
-  NUM_STATES,
   AllOff = 255
 };
+
+#define NUM_STATES 1
 unsigned char pattern = AllOff;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
@@ -104,7 +107,8 @@ void setup()
 // main loop
 void loop()
 {
-  handleNextPatternButton();
+//  handleNextPatternButton();
+pattern = SymSimpleHSV;
 
   if (loopCount == 0)
   {
@@ -131,6 +135,18 @@ void loop()
   // routines just set the colors in the colors array
   switch (pattern)
   {
+    case SimpleHSV:
+        maxLoops = 400;
+        SimpleHSV_pat();
+        break;
+
+    case SymSimpleHSV:        
+        maxLoops = 256;
+        SymSimpleHSV_pat();
+        delay(6);
+        break;
+
+
     case WarmWhiteShimmer:
       // warm white shimmer for 300 loopCounts, fading over last 70
       maxLoops = 300;
@@ -415,6 +431,22 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
       leds[i+2] = leds[i-2];
     }
   }
+}
+
+
+void SimpleHSV_pat()
+{
+    for (int i = 0; i < LED_COUNT; ++i) {
+        leds[i] = CHSV((i + loopCount) % 255, 255, 255);
+    }
+}
+
+void SymSimpleHSV_pat()
+{
+    for (int i = 0; i < LED_COUNT/2; ++i) {
+        leds[i] = CHSV((i + loopCount) % 255, 255, 255);
+        leds[LED_COUNT - i - 1] = leds[i];
+    }
 }
 
 
