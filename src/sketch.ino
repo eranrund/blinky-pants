@@ -1,3 +1,5 @@
+#if 1
+// 8 9 14 22 27 29 
 /* LedStripXmas: A series of fun patterns for use with LED
  * strips set up as a Christmas lighting display.  You can see an
  * earlier version of this code running in this youtube video:
@@ -52,6 +54,8 @@ unsigned int seed = 0;  // used to initialize random number generator
 enum Pattern {
     SimpleHSV,
     SymSimpleHSV,
+    EMS,
+    Flicker,
   WarmWhiteShimmer ,
   RandomColorWalk,
   TraditionalColors,
@@ -108,7 +112,7 @@ void setup()
 void loop()
 {
 //  handleNextPatternButton();
-pattern = SymSimpleHSV;
+pattern = Flicker;
 
   if (loopCount == 0)
   {
@@ -146,6 +150,15 @@ pattern = SymSimpleHSV;
         delay(6);
         break;
 
+    case EMS:
+        maxLoops = 0xffffffff;
+        EMS_pat();
+        break;
+
+    case Flicker:
+        maxLoops = 0xffffffff;
+        Flicker_pat();
+        break;
 
     case WarmWhiteShimmer:
       // warm white shimmer for 300 loopCounts, fading over last 70
@@ -988,3 +1001,37 @@ unsigned char collision()
 
   return 0;
 }
+
+#define TOP_INDEX (LED_COUNT/2)
+int antipodal_index(int i) {
+  int iN = i + TOP_INDEX;
+  if (i >= TOP_INDEX) {iN = ( i + TOP_INDEX ) % LED_COUNT; }
+  return iN;
+}
+
+int thishue = 0;
+void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
+  int loopCountR = (loopCount % LED_COUNT);
+  int loopCountB = antipodal_index(loopCountR);
+  int thathue = (thishue + 160) % 255;
+  leds[loopCountR] = CHSV(thishue, 255, 255);
+  leds[loopCountB] = CHSV(thathue, 255, 255);  
+
+  if ((loopCount % 3) == 0) ++thishue;
+
+  delay(30);
+}
+
+void Flicker_pat() {
+  int random_bright = random(0,255);
+  int random_delay = random(10,100);
+  int random_bool = random(0,random_bright);
+  if (random_bool < 10) {
+    for(int i = 0 ; i < LED_COUNT; i++ ) {
+      leds[i] = CHSV(160, 50, random_bright);
+    }
+    delay(random_delay);
+  }
+
+}
+#endif
