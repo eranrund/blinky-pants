@@ -9,7 +9,7 @@
  * to control if the Arduino automatically cycles through the
  * different patterns.  When no switch is present or the switch
  * is open, the patterns will cycle.
- *
+ * 
  * You can also optionally connect a button between pin 2 and
  * ground that displays the next pattern in the series each time
  * it is pushed.  This example requires the PololuLEDStrip
@@ -78,15 +78,15 @@ void setup()
   // save a random number in EEPROM to be used for random seed
   // generation the next time the program runs
   EEPROM.write(0, random(256));
-
+  
   // optionally connect a switch between this pin and ground
   // when the input is low, freeze the cycle at the current pattern
   pinMode(AUTOCYCLE_SWITCH_PIN, INPUT_PULLUP);
-
+  
   // optionally connect a button between this pin and ground
   // when the input goes low, advance to the next pattern in cycle
   pinMode(NEXT_PATTERN_BUTTON_PIN, INPUT_PULLUP);
-
+  
   delay(10);  // give pull-ups time raise the input voltage
 
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
@@ -105,7 +105,7 @@ void setup()
 void loop()
 {
   handleNextPatternButton();
-
+  
   if (loopCount == 0)
   {
     // whenever timer resets, clear the LED colors array (all off)
@@ -114,7 +114,7 @@ void loop()
       leds[i] = CRGB(0, 0, 0);
     }
   }
-
+  
   if (pattern == WarmWhiteShimmer || pattern == RandomColorWalk)
   {
     // for these two patterns, we want to make sure we get the same
@@ -126,7 +126,7 @@ void loop()
     }
     randomSeed(seed);
   }
-
+  
   // call the appropriate pattern routine based on state; these
   // routines just set the colors in the colors array
   switch (pattern)
@@ -136,21 +136,22 @@ void loop()
       maxLoops = 300;
       warmWhiteShimmer(loopCount > maxLoops - 70);
       break;
-
+     
     case RandomColorWalk:
       // start with alternating red and green colors that randomly walk
       // to other colors for 400 loopCounts, fading over last 80
       maxLoops = 400;
       randomColorWalk(loopCount == 0 ? 1 : 0, loopCount > maxLoops - 80);
       break;
-
+#if 0 
+      
     case TraditionalColors:
       // repeating pattern of red, green, orange, blue, magenta that
       // slowly moves for 400 loopCounts
       maxLoops = 400;
       traditionalColors();
       break;
-
+      
     case ColorExplosion:
       // bursts of random color that radiate outwards from random points
       // for 630 loop counts; no burst generation for the last 70 counts
@@ -159,7 +160,7 @@ void loop()
       maxLoops = 630;
       colorExplosion((loopCount % 200 > 130) || (loopCount > maxLoops - 100));
       break;
-
+      
     case Gradient:
       // red -> white -> green -> white -> red ... gradiant that scrolls
       // across the strips for 250 counts; this pattern is overlaid with
@@ -168,7 +169,7 @@ void loop()
       gradient();
       delay(6);  // add an extra 6ms delay to slow things down
       break;
-
+      
     case BrightTwinkle:
       // random LEDs light up brightly and fade away; it is a very similar
       // algorithm to colorExplosion (just no radiating outward from the
@@ -193,7 +194,7 @@ void loop()
         brightTwinkle(1, 6, loopCount > maxLoops - 100);
       }
       break;
-
+      
     case Collision:
       // colors grow towards each other from the two ends of the strips,
       // accelerating until they collide and the whole strip flashes
@@ -205,7 +206,8 @@ void loop()
         maxLoops = loopCount + 2;
       }
       break;
-  }
+#endif      
+  } 
 
   // update the LED strips with the colors in the colors array
   FastLED.show();
@@ -302,7 +304,7 @@ void fade(unsigned char *val, unsigned char fadeTime)
 
 
 // ***** PATTERN WarmWhiteShimmer *****
-// This function randomly increases or decreases the brightness of the
+// This function randomly increases or decreases the brightness of the 
 // even red LEDs by changeAmount, capped at maxBrightness.  The green
 // and blue LED values are set proportional to the red value so that
 // the LED color is warm white.  Each odd LED is set to a quarter the
@@ -319,11 +321,11 @@ void warmWhiteShimmer(unsigned char dimOnly)
   {
     // randomly walk the brightness of every even LED
     randomWalk(&leds[i].red, maxBrightness, changeAmount, dimOnly ? 1 : 2);
-
+    
     // warm white: red = x, green = 0.8x, blue = 0.125x
     leds[i].green = leds[i].red*4/5;  // green = 80% of red
     leds[i].blue = leds[i].red >> 3;  // blue = red/8
-
+    
     // every odd LED gets set to a quarter the brighness of the preceding even LED
     if (i + 1 < LED_COUNT)
     {
@@ -350,7 +352,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
 {
   const unsigned char maxBrightness = 180;  // cap on LED brightness
   const unsigned char changeAmount = 3;  // size of random walk step
-
+  
   // pick a good starting point for our pattern so the entire strip
   // is lit well (if we pick wrong, the last four LEDs could be off)
   unsigned char start;
@@ -396,7 +398,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
       // initialize LEDs to a string of random colors
       leds[i] = CRGB(random(maxBrightness), random(maxBrightness), random(maxBrightness));
     }
-
+    
     // set neighboring LEDs to be progressively dimmer versions of the color we just set
     if (i >= 1)
     {
@@ -418,6 +420,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
 }
 
 
+#if 0
 // ***** PATTERN TraditionalColors *****
 // This function creates a repeating patern of traditional Christmas
 // light colors: red, green, orange, blue, magenta.
@@ -430,7 +433,7 @@ void traditionalColors()
   const unsigned char initialDarkCycles = 10;
   // loop counts it takes to go from full off to fully bright
   const unsigned char brighteningCycles = 20;
-
+  
   if (loopCount < initialDarkCycles)  // leave strip fully off for 20 cycles
   {
     return;
@@ -460,29 +463,29 @@ void traditionalColors()
         switch ((i/4)%5)
         {
            case 0:  // red
-             leds[idx].red = 200 * brightness/brighteningCycles;
-             leds[idx].green = 10 * brightness/brighteningCycles;
-             leds[idx].blue = 10 * brightness/brighteningCycles;
+             leds[idx].red = 200 * brightness/brighteningCycles; 
+             leds[idx].green = 10 * brightness/brighteningCycles; 
+             leds[idx].blue = 10 * brightness/brighteningCycles;  
              break;
            case 1:  // green
-             leds[idx].red = 10 * brightness/brighteningCycles;
-             leds[idx].green = 200 * brightness/brighteningCycles;
-             leds[idx].blue = 10 * brightness/brighteningCycles;
+             leds[idx].red = 10 * brightness/brighteningCycles; 
+             leds[idx].green = 200 * brightness/brighteningCycles;  
+             leds[idx].blue = 10 * brightness/brighteningCycles; 
              break;
            case 2:  // orange
-             leds[idx].red = 200 * brightness/brighteningCycles;
-             leds[idx].green = 120 * brightness/brighteningCycles;
-             leds[idx].blue = 0 * brightness/brighteningCycles;
+             leds[idx].red = 200 * brightness/brighteningCycles;  
+             leds[idx].green = 120 * brightness/brighteningCycles; 
+             leds[idx].blue = 0 * brightness/brighteningCycles; 
              break;
            case 3:  // blue
-             leds[idx].red = 10 * brightness/brighteningCycles;
-             leds[idx].green = 10 * brightness/brighteningCycles;
-             leds[idx].blue = 200 * brightness/brighteningCycles;
+             leds[idx].red = 10 * brightness/brighteningCycles; 
+             leds[idx].green = 10 * brightness/brighteningCycles; 
+             leds[idx].blue = 200 * brightness/brighteningCycles; 
              break;
            case 4:  // magenta
-             leds[idx].red = 200 * brightness/brighteningCycles;
-             leds[idx].green = 64 * brightness/brighteningCycles;
-             leds[idx].blue = 145 * brightness/brighteningCycles;
+             leds[idx].red = 200 * brightness/brighteningCycles; 
+             leds[idx].green = 64 * brightness/brighteningCycles;  
+             leds[idx].blue = 145 * brightness/brighteningCycles;  
              break;
         }
       }
@@ -579,7 +582,7 @@ void colorExplosion(unsigned char noNewBursts)
     colorExplosionColorAdjust(&leds[i].green, 9, &leds[i-1].green, &leds[i+1].green);
     colorExplosionColorAdjust(&leds[i].blue, 9, &leds[i-1].blue, &leds[i+1].blue);
   }
-
+  
   // adjust the colors of the last LED
   colorExplosionColorAdjust(&leds[LED_COUNT-1].red, 9, &leds[LED_COUNT-2].red, (unsigned char*)0);
   colorExplosionColorAdjust(&leds[LED_COUNT-1].green, 9, &leds[LED_COUNT-2].green, (unsigned char*)0);
@@ -603,7 +606,7 @@ void colorExplosion(unsigned char noNewBursts)
             leds[j].red = 1;
           }
           break;
-
+        
         // 2/7 chance we will spawn a green burst here (if LED has no green component)
         case 2:
         case 3:
@@ -621,7 +624,7 @@ void colorExplosion(unsigned char noNewBursts)
             leds[j] = CRGB(1, 1, 1);
           }
           break;
-
+        
         // 1/7 chance we will spawn a blue burst here (if LED has no blue component)
         case 6:
           if (leds[j].blue == 0)
@@ -629,7 +632,7 @@ void colorExplosion(unsigned char noNewBursts)
             leds[j].blue = 1;
           }
           break;
-
+          
         default:
           break;
       }
@@ -646,7 +649,7 @@ void colorExplosion(unsigned char noNewBursts)
 void gradient()
 {
   unsigned int j = 0;
-
+  
   // populate colors array with full-brightness gradient colors
   // (since the array indices are a function of loopCount, the gradient
   // colors scroll over time)
@@ -667,14 +670,14 @@ void gradient()
       j++;
     }
   }
-
+  
   // modify the colors array to overlay the waves of dimness
   // (since the array indices are a function of loopCount, the waves
   // of dimness scroll over time)
   const unsigned char fullDarkLEDs = 10;  // number of LEDs to leave fully off
   const unsigned char fullBrightLEDs = 5;  // number of LEDs to leave fully bright
   const unsigned char cyclePeriod = 14 + fullDarkLEDs + fullBrightLEDs;
-
+  
   // if LED_COUNT is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
   // that is an exact multiple of the pattern period (cyclePeriod) and is not
@@ -685,43 +688,43 @@ void gradient()
   while (j < extendedLEDCount)
   {
     unsigned int idx;
-
+    
     // progressively dim the LEDs
     for (int i = 1; i < 8; i++)
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
       if (idx >= LED_COUNT){ continue; }
-
+  
       leds[idx].red >>= i;
       leds[idx].green >>= i;
-      leds[idx].blue >>= i;
+      leds[idx].blue >>= i;      
     }
-
+    
     // turn off these LEDs
     for (int i = 0; i < fullDarkLEDs; i++)
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
       if (idx >= LED_COUNT){ continue; }
-
+  
       leds[idx].red = 0;
       leds[idx].green = 0;
       leds[idx].blue = 0;
     }
-
+    
     // progressively bring these LEDs back
     for (int i = 0; i < 7; i++)
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
       if (idx >= LED_COUNT){ continue; }
-
+  
       leds[idx].red >>= (7 - i);
       leds[idx].green >>= (7 - i);
-      leds[idx].blue >>= (7 - i);
+      leds[idx].blue >>= (7 - i);      
     }
-
+    
     // skip over these LEDs to leave them at full brightness
     j += fullBrightLEDs;
   }
@@ -759,7 +762,7 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
     brightTwinkleColorAdjust(&leds[i].green);
     brightTwinkleColorAdjust(&leds[i].blue);
   }
-
+  
   if (!noNewBursts)
   {
     // if we are generating new twinkles, randomly pick four new LEDs
@@ -775,28 +778,28 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
         switch (random(numColors) + minColor)
         {
           case 0:
-            leds[j] = CRGB(1, 1, 1);  // white
+            leds[j] = (rgb_color){1, 1, 1};  // white
             break;
           case 1:
-            leds[j] = CRGB(1, 0, 0);  // red
+            leds[j] = (rgb_color){1, 0, 0};  // red
             break;
           case 2:
-            leds[j] = CRGB(0, 1, 0);  // green
+            leds[j] = (rgb_color){0, 1, 0};  // green
             break;
           case 3:
-            leds[j] = CRGB(0, 0, 1);  // blue
+            leds[j] = (rgb_color){0, 0, 1};  // blue
             break;
           case 4:
-            leds[j] = CRGB(1, 1, 0);  // yellow
+            leds[j] = (rgb_color){1, 1, 0};  // yellow
             break;
           case 5:
-            leds[j] = CRGB(0, 1, 1);  // cyan
+            leds[j] = (rgb_color){0, 1, 1};  // cyan
             break;
           case 6:
-            leds[j] = CRGB(1, 0, 1);  // magenta
+            leds[j] = (rgb_color){1, 0, 1};  // magenta
             break;
           default:
-            leds[j] = CRGB(1, 1, 1);  // white
+            leds[j] = (rgb_color){1, 1, 1};  // white
         }
       }
     }
@@ -817,45 +820,45 @@ unsigned char collision()
   const unsigned char numCollisions = 5;  // # of collisions before pattern ends
   static unsigned char state = 0;  // pattern state
   static unsigned int count = 0;  // counter used by pattern
-
+  
   if (loopCount == 0)
   {
     state = 0;
   }
-
+  
   if (state % 3 == 0)
   {
     // initialization state
     switch (state/3)
     {
       case 0:  // first collision: red streams
-        leds[0] = CRGB(maxBrightness, 0, 0);
+        leds[0] = (rgb_color){maxBrightness, 0, 0};
         break;
       case 1:  // second collision: green streams
-        leds[0] = CRGB(0, maxBrightness, 0);
+        leds[0] = (rgb_color){0, maxBrightness, 0};
         break;
       case 2:  // third collision: blue streams
-        leds[0] = CRGB(0, 0, maxBrightness);
+        leds[0] = (rgb_color){0, 0, maxBrightness};
         break;
       case 3:  // fourth collision: warm white streams
-        leds[0] = CRGB(maxBrightness, maxBrightness*4/5, maxBrightness>>3);
+        leds[0] = (rgb_color){maxBrightness, maxBrightness*4/5, maxBrightness>>3};
         break;
       default:  // fifth collision and beyond: random-color streams
-        leds[0] = CRGB(random(maxBrightness), random(maxBrightness), random(maxBrightness));
+        leds[0] = (rgb_color){random(maxBrightness), random(maxBrightness), random(maxBrightness)};
     }
-
+    
     // stream is led by two full-white LEDs
-    leds[1] = leds[2] = CRGB(255, 255, 255);
+    leds[1] = leds[2] = (rgb_color){255, 255, 255};
     // make other side of the strip a mirror image of this side
     leds[LED_COUNT - 1] = leds[0];
     leds[LED_COUNT - 2] = leds[1];
     leds[LED_COUNT - 3] = leds[2];
-
+    
     state++;  // advance to next state
     count = 8;  // pick the first value of count that results in a startIdx of 1 (see below)
     return 0;
   }
-
+  
   if (state % 3 == 1)
   {
     // stream-generation state; streams accelerate towards each other
@@ -881,7 +884,7 @@ unsigned char collision()
         if (i >= (LED_COUNT + 1) / 2)
         {
           // anything past the halfway point is white
-          leds[i] = CRGB(255, 255, 255);
+          leds[i] = (rgb_color){255, 255, 255};
         }
         else
         {
@@ -891,7 +894,7 @@ unsigned char collision()
         leds[LED_COUNT - i - 1] = leds[i];
       }
       // stream is led by two full-white LEDs
-      leds[stopIdx + 1] = leds[stopIdx + 2] = CRGB(255, 255, 255);
+      leds[stopIdx + 1] = leds[stopIdx + 2] = (rgb_color){255, 255, 255};
       // make other side of the strip a mirror image of this side
       leds[LED_COUNT - stopIdx - 2] = leds[stopIdx + 1];
       leds[LED_COUNT - stopIdx - 3] = leds[stopIdx + 2];
@@ -902,13 +905,13 @@ unsigned char collision()
       // flash the entire strip full-brightness white (ignores maxBrightness limits)
       for (int i = 0; i < LED_COUNT; i++)
       {
-        leds[i] = CRGB(255, 255, 255);
+        leds[i] = (rgb_color){255, 255, 255};
       }
       state++;  // advance to next state
     }
     return 0;
   }
-
+  
   if (state % 3 == 2)
   {
     // fade state
@@ -916,11 +919,11 @@ unsigned char collision()
     {
       // if first LED is fully off, advance to next state
       state++;
-
+      
       // after numCollisions collisions, this pattern is done
       return state == 3*numCollisions;
     }
-
+    
     // fade the LEDs at different rates based on the state
     for (int i = 0; i < LED_COUNT; i++)
     {
@@ -953,6 +956,7 @@ unsigned char collision()
       }
     }
   }
-
+  
   return 0;
 }
+#endif
