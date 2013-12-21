@@ -1,5 +1,3 @@
-#if 1
-// 8 9 14 22 27 29 
 /* LedStripXmas: A series of fun patterns for use with LED
  * strips set up as a Christmas lighting display.  You can see an
  * earlier version of this code running in this youtube video:
@@ -42,7 +40,9 @@
 // so we should be very sparing with additional RAM use and keep
 // an eye out for possible stack overflow problems.
 #define LED_COUNT NUM_LEDS
+
 CRGB leds[LED_COUNT];
+CRGB ledsX[LED_COUNT];
 
 
 // system timer, incremented by one every time through the main loop
@@ -56,6 +56,9 @@ enum Pattern {
     SymSimpleHSV,
     EMS,
     Flicker,
+    RandomMarch,
+    Flame,
+    Matrix,
   WarmWhiteShimmer ,
   RandomColorWalk,
   TraditionalColors,
@@ -63,10 +66,10 @@ enum Pattern {
   Gradient,
   BrightTwinkle,
   Collision,
+  NUM_STATES,
   AllOff = 255
 };
 
-#define NUM_STATES 1
 unsigned char pattern = AllOff;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
@@ -111,8 +114,8 @@ void setup()
 // main loop
 void loop()
 {
-//  handleNextPatternButton();
-pattern = Flicker;
+  handleNextPatternButton();
+//pattern = Matrix;
 
   if (loopCount == 0)
   {
@@ -151,13 +154,29 @@ pattern = Flicker;
         break;
 
     case EMS:
-        maxLoops = 0xffffffff;
+        maxLoops = LED_COUNT * 4;
         EMS_pat();
         break;
 
     case Flicker:
-        maxLoops = 0xffffffff;
+        maxLoops = LED_COUNT * 5;
         Flicker_pat();
+        break;
+
+    case RandomMarch:
+        maxLoops = LED_COUNT * 2;
+        RandomMartch_pat();
+        delay(24);
+        break;
+
+    case Flame:
+        maxLoops = LED_COUNT;
+        Flame_pat();
+        break;
+
+    case Matrix:
+        maxLoops = LED_COUNT * 3;
+        Matrix_pat();
         break;
 
     case WarmWhiteShimmer:
@@ -1034,4 +1053,80 @@ void Flicker_pat() {
   }
 
 }
-#endif
+
+int adjacent_ccw(int i) {
+  int r;
+  if (i > 0) {r = i - 1;}
+  else {r = LED_COUNT - 1;}
+  return r;
+}
+
+
+#define copy_led_array() memcpy(&ledsX, &leds, sizeof(leds))
+
+void RandomMartch_pat()
+{
+  copy_led_array();
+  int iCCW;
+  leds[0] = CHSV(random(0,255), 255, 255);
+  for(int idex = 1; idex < LED_COUNT ; idex++ ) {
+    iCCW = adjacent_ccw(idex);
+    leds[idex].r = ledsX[iCCW][0];
+    leds[idex].g = ledsX[iCCW][1];
+    leds[idex].b = ledsX[iCCW][2];
+  }
+  if (loopCount > LED_COUNT) {
+    for (int i = 0; i < loopCount - LED_COUNT; ++i) {
+        if (i >= LED_COUNT) i = 0; // safety
+        leds[i] = CRGB(0,0,0);
+    }
+  }
+
+  LEDS.show();  
+}
+
+#define EVENODD (LED_COUNT % 2)
+int horizontal_index(int i) {
+  //-ONLY WORKS WITH INDEX < TOPINDEX
+  if (i == 0) {return 0;}
+  if (i == TOP_INDEX && EVENODD == 1) {return TOP_INDEX + 1;}
+  if (i == TOP_INDEX && EVENODD == 0) {return TOP_INDEX;}
+  return LED_COUNT - i;  
+}
+
+void Flame_pat() {
+  int ghue = (0 + 80) % 255;
+  int bhue = (0 + 160) % 255;
+  int N3  = int(LED_COUNT/3);
+  int N6  = int(LED_COUNT/6);  
+  int N12 = int(LED_COUNT/12);  
+  int idex = loopCount;
+  int thissat = 200;
+  for(int i = 0; i < N3; i++ ) {
+    int j0 = (idex + i + LED_COUNT - N12) % LED_COUNT;
+    int j1 = (j0+N3) % LED_COUNT;
+    int j2 = (j1+N3) % LED_COUNT;    
+    leds[j0] = CHSV(0 , thissat, 255);
+    leds[j1] = CHSV(ghue, thissat, 255);
+    leds[j2] = CHSV(bhue, thissat, 255);    
+  }
+  delay(10);
+}
+
+void Matrix_pat() {
+    int thishue = 95;
+    int thissat = 255;
+
+  int rand = random(0, 100);
+  if (rand > 90) {
+    leds[0] = CHSV(thishue, thissat, 255);
+  }
+  else {leds[0] = CHSV(thishue, thissat, 0);}
+  copy_led_array();
+    for(int i = 1; i < LED_COUNT; i++ ) {
+    leds[i].r = ledsX[i-1][0];
+    leds[i].g = ledsX[i-1][1];
+    leds[i].b = ledsX[i-1][2];    
+  }
+  delay(50);
+}
