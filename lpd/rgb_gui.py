@@ -14,7 +14,7 @@ print hsv(50, 255, 255)
 
 UDP_IP = "192.168.0.103"
 UDP_PORT = 9022
-N_LEDS = 228
+N_LEDS = 226
 
 RED = "\xFF\x00\x00" * N_LEDS
 GREEN = "\x00\xFF\x00" * N_LEDS
@@ -104,10 +104,9 @@ def matrix(hue=95, sat=255):
 
 
 
-if __name__=='__main__':
-    #sym_simple_hsv()
-    #flicker()
-    matrix()
+#sym_simple_hsv()
+#flicker()
+matrix()
 
 #    sock.sendto(RED, (UDP_IP, UDP_PORT))
 #    sleep(1.0 / 30)

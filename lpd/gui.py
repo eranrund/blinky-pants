@@ -4,7 +4,7 @@ import wx
 class MyFrame(wx.Frame):
     def __init__(self, parent, id, title):
 
-        wx.Frame.__init__(self, parent, id, title, wx.DefaultPosition, (600, 250))
+        wx.Frame.__init__(self, parent, id, title, wx.DefaultPosition, (700, 250))
         panel = wx.Panel(self, -1)
         self.panel = panel
 
@@ -12,11 +12,11 @@ class MyFrame(wx.Frame):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
 
 
-        self.slider1 = wx.Slider(panel, 0xa001, 100, 0, 255, wx.DefaultPosition, (450, -1),
+        self.slider1 = wx.Slider(panel, 0xa001, 100, 0, 255, wx.DefaultPosition, (650, -1),
                               wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
-        self.slider2 = wx.Slider(panel, 0xa002, 200, 0, 255, wx.DefaultPosition, (450, -1),
+        self.slider2 = wx.Slider(panel, 0xa002, 200, 0, 255, wx.DefaultPosition, (650, -1),
                               wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
-        self.slider3 = wx.Slider(panel, 0xa003, 200, 0, 255, wx.DefaultPosition, (450, -1),
+        self.slider3 = wx.Slider(panel, 0xa003, 200, 0, 255, wx.DefaultPosition, (650, -1),
                               wx.SL_AUTOTICKS | wx.SL_HORIZONTAL | wx.SL_LABELS)
 
         btn1 = wx.Button(panel, 8, 'Adjust')
@@ -49,9 +49,11 @@ class MyFrame(wx.Frame):
         r = self.slider1.GetValue()
         g = self.slider2.GetValue()
         b = self.slider3.GetValue()
-        self.SetBackgroundColour(wx.Colour(r,g,b,0.5))
         #buf = [r,g,b] * N_LEDS
         buf = hsv(r,g,b) * N_LEDS
+        rgb = [buf[0],buf[1],buf[2]]
+        print r, g, b, rgb
+        self.SetBackgroundColour(wx.Colour(*rgb))
         send_buf(buf)
 
 class MyApp(wx.App):

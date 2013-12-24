@@ -1,2 +1,6 @@
 *.swp
+*.pyc
 .build
+android-ledstrip/bin
+android-ledstrip/libs/colorpicker/bin
+android-ledstrip/libs/color-picker-view-read-only/.svn
