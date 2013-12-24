@@ -28,6 +28,19 @@ def send_buf(buf):
     assert len(buf) == N_LEDS * 3
     b = ''.join(chr(ch) for ch in buf)
     sock.sendto(b, (UDP_IP, UDP_PORT))
+
+def send_buf2(buf):
+    return send_buf(list(itertools.chain(*buf)))
+
+
+
+import atexit
+def clear():
+    buf = [0] * 3 * N_LEDS
+    send_buf(buf)
+atexit.register(clear)
+
+
  
 def rainbow():
     while True:
@@ -69,14 +82,32 @@ def sym_simple_hsv():
         cnt += 1
 
 
-import atexit
-def clear():
-    buf = [0] * 3 * N_LEDS
-    send_buf(buf)
-atexit.register(clear)
+def matrix(hue=95, sat=255):
+    buf = [[0,0,0]] * N_LEDS
+    buf_copy = list(buf)
 
-sym_simple_hsv()
-#flicker()
+    while True:
+        rand = random.randint(0, 100)
+        if rand > 90:
+            buf[0] = hsv(hue, sat, 255)
+        else:
+            buf[0] = hsv(hue, sat, 0)
+
+        buf_copy = list(buf)
+        for i in range(1, N_LEDS):
+            buf[i] = buf_copy[i-1]
+
+        send_buf2(buf)
+        sleep(0.020)
+
+
+
+
+
+if __name__=='__main__':
+    #sym_simple_hsv()
+    #flicker()
+    matrix()
 
 #    sock.sendto(RED, (UDP_IP, UDP_PORT))
 #    sleep(1.0 / 30)
