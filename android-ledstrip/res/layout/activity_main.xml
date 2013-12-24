@@ -23,4 +23,24 @@
         android:layout_marginLeft="43dp"
         android:layout_marginTop="109dp" />
 
+    <EditText
+        android:id="@+id/textIpAddr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/colorPickerView1"
+        android:layout_below="@+id/textView1"
+        android:layout_marginTop="61dp"
+        android:ems="10" >
+
+        <requestFocus />
+    </EditText>
+
+    <Button
+        android:id="@+id/btnFind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/colorPickerView1"
+        android:layout_alignTop="@+id/textIpAddr"
+        android:text="Find" />
+
 </RelativeLayout>

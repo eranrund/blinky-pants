@@ -15,7 +15,7 @@
 
 int main(int argc, char *argv[]) {
   int fd;              /* SPI device file descriptor */
-  const int leds = 227; /* 50 LEDs in the strand */
+  const int leds = 229; /* 50 LEDs in the strand */
   lpd8806_buffer buf;      /* Memory buffer for pixel values */
   int count;           /* Count of iterations (up to 3) */
   int i;               /* Counting Integer */
@@ -64,7 +64,9 @@ int main(int argc, char *argv[]) {
 
     for (;;) {
         recvlen = recvfrom(sock, recv_buf, sizeof(recv_buf), 0, (struct sockaddr *)&remaddr, &addrlen);
+        printf("%d\n", recvlen);
         for (count = 0; count < leds; ++count) {
+            //write_color(
             write_gamma_color(
                 &buf.pixels[count],
                 recv_buf[(3 * count) + 0],

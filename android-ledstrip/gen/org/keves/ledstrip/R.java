@@ -57,14 +57,16 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int icon=0x7f020001;
     }
     public static final class id {
-        public static final int action_settings=0x7f040008;
+        public static final int action_settings=0x7f04000a;
+        public static final int btnFind=0x7f040008;
         public static final int colorPickerView1=0x7f040006;
         public static final int color_panel_new=0x7f040002;
         public static final int color_panel_old=0x7f040001;
         public static final int color_picker_view=0x7f040000;
         public static final int dialog_color_picker_extra_layout_landscape=0x7f040004;
-        public static final int layout1=0x7f040007;
+        public static final int layout1=0x7f040009;
         public static final int preference_preview_color_panel=0x7f040003;
+        public static final int textIpAddr=0x7f040007;
         public static final int textView1=0x7f040005;
     }
     public static final class layout {
