@@ -70,12 +70,90 @@ class LedStrip(object):
 
 ls = LedStrip(N_LEDS)
 
-cnt = 0
+def hsv1():
+    cnt = 0
+    while True:
+        for i in range(N_LEDS):
+            ls.set_pixel_hsv((i + cnt) % N_LEDS, i, 255, 255)
+        cnt += 1
+        sleep(0.01)
+
+def gradients(max_loops=10000, delay=0.006):
+    LED_COUNT = N_LEDS
+
+    for loop_cnt in range(max_loops):
+        j = 0
+      
+        while j < N_LEDS:
+            for i in range(8):
+                if j >= N_LEDS: break
+
+            ls.set_pixel_rgb((loop_cnt/2 + j + N_LEDS)%N_LEDS, 160 - 20*i, 20*i, (160 - 20*i)*20*i/160)
+            j += 1
+            
+            # transition from green to red over 8 LEDs
+            for i in range(8):
+                if (j >= LED_COUNT): break
+
+            ls.set_pixel_rgb((loop_cnt/2 + j + LED_COUNT)%LED_COUNT, 20*i, 160 - 20*i, (160 - 20*i)*20*i/160)
+            j+= 1
+        
+      
+        #// modify the colors array to overlay the waves of dimness
+        #// (since the array indices are a function of loop_cnt, the waves
+        #// of dimness scroll over time)
+        fullDarkLEDs = 10  #// number of LEDs to leave fully off
+        fullBrightLEDs = 5  #// number of LEDs to leave fully bright
+        cyclePeriod = 14 + fullDarkLEDs + fullBrightLEDs
+      
+        #// if LED_COUNT is not an exact multiple of our repeating pattern size,
+        #// it will not wrap around properly, so we pick the closest LED count
+        #// that is an exact multiple of the pattern period (cyclePeriod) and is not
+        #// smaller than the actual LED count.
+        extendedLEDCount = (((LED_COUNT-1)/cyclePeriod)+1)*cyclePeriod
+
+        j = 0
+        while (j < extendedLEDCount):
+            idx = 0
+            
+            for i in range(1, 8):
+                idx = (j + loop_cnt) % extendedLEDCount
+                j += 1
+                if (j >= extendedLEDCount-1): return
+                if (idx >= LED_COUNT): continue
+
+                ls.pixels[idx].r >>= i
+                ls.pixels[idx].g >>= i
+                ls.pixels[idx].b >>= i
+          
+            for i in range(fullDarkLEDs):
+                idx = (j + loop_cnt) % extendedLEDCount
+                j += 1
+                if (j >= extendedLEDCount-1): return
+                if (idx >= LED_COUNT): continue
+
+                ls.pixels[idx].r = 0
+                ls.pixels[idx].g = 0
+                ls.pixels[idx].b = 0
+            
+            # // progressively bring these LEDs back
+            for i in range(7):
+                idx = (j + loop_cnt) % extendedLEDCount
+                j += 1
+                if (j >= extendedLEDCount-1): return
+                if (idx >= LED_COUNT): continue
+
+                ls.pixels[idx].r >>= (7 - i)
+                ls.pixels[idx].g >>= (7 - i)
+                ls.pixels[idx].b >>= (7 - i);
+            
+            #            // skip over these LEDs to leave them at full brightness
+            j += fullBrightLEDs
+        
+        sleep(delay)
+
 while True:
-    for i in range(N_LEDS):
-        ls.set_pixel_hsv((i + cnt) % N_LEDS, i, 255, 255)
-    cnt += 1
-    sleep(0.01)
+    gradients(delay=0.01)
 
 
 def random_walk(buf, i, c, max_val, change_amount, dirs):
