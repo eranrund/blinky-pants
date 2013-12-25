@@ -113,7 +113,7 @@ void LED_show() {
 
  i =    sendto(sockfd,buf,sizeof(buf),0,
                           (struct sockaddr *)&servaddr,sizeof(servaddr));
- printf("%d\n", i);
+ //printf("%d\n", i);
 
 
 }
@@ -166,6 +166,11 @@ void loop()
 {
   handleNextPatternButton();
 //pattern = Matrix;
+//
+//  pattern = 2;
+//
+//    if (pattern < 8) pattern = 13;
+    printf("%d\n", pattern);
 
   if (loopCount == 0)
   {
@@ -195,6 +200,7 @@ void loop()
     case SimpleHSV:
         maxLoops = 400;
         SimpleHSV_pat();
+        delay(6);
         break;
 
     case SymSimpleHSV:        
@@ -206,6 +212,7 @@ void loop()
     case EMS:
         maxLoops = LED_COUNT * 4;
         EMS_pat();
+ //       delay(6);
         break;
 
     case Flicker:
@@ -231,22 +238,25 @@ void loop()
 
     case WarmWhiteShimmer:
       // warm white shimmer for 300 loopCounts, fading over last 70
-      maxLoops = 300;
+      maxLoops = 6000;
       warmWhiteShimmer(loopCount > maxLoops - 70);
+      delay(2);
       break;
 
     case RandomColorWalk:
       // start with alternating red and green colors that randomly walk
       // to other colors for 400 loopCounts, fading over last 80
-      maxLoops = 400;
+      maxLoops = 4000;
       randomColorWalk(loopCount == 0 ? 1 : 0, loopCount > maxLoops - 80);
+      delay(2);
       break;
 
     case TraditionalColors:
       // repeating pattern of red, green, orange, blue, magenta that
       // slowly moves for 400 loopCounts
-      maxLoops = 400;
+      maxLoops = 4000;
       traditionalColors();
+      delay(2);
       break;
 
     case ColorExplosion:
@@ -254,8 +264,9 @@ void loop()
       // for 630 loop counts; no burst generation for the last 70 counts
       // of every 200 count cycle or over the over final 100 counts
       // (this creates a repeating bloom/decay effect)
-      maxLoops = 630;
+      maxLoops = 6300;
       colorExplosion((loopCount % 200 > 130) || (loopCount > maxLoops - 100));
+      delay(5);
       break;
 
     case Gradient:
@@ -264,7 +275,7 @@ void loop()
       // waves of dimness that also scroll (at twice the speed)
       maxLoops = 250;
       gradient();
-      delay(6);  // add an extra 6ms delay to slow things down
+      delay(20);  // add an extra 6ms delay to slow things down
       break;
 
     case BrightTwinkle:
@@ -290,6 +301,7 @@ void loop()
         // red, green, blue, cyan, magenta, yellow for the rest of the time
         brightTwinkle(1, 6, loopCount > maxLoops - 100);
       }
+      delay(6);
       break;
 
     case Collision:
@@ -302,6 +314,7 @@ void loop()
       {
         maxLoops = loopCount + 2;
       }
+      delay(6);
       break;
   }
 
