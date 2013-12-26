@@ -58,12 +58,12 @@ def calculate_levels(data, n_levels):
     return levels
 
 from udp_client import send_buf2,hsv,N_LEDS
-n_levels = 16
+n_levels =28 
 old_levels = [0] * n_levels
 while data != '':
-    out = []
-    for i in range(0, len(data), 4):
-        out.append(data[i:i+2])
+    #out = []
+    #for i in range(0, len(data), 4):
+    #    out.append(data[i:i+2])
 
     #rms   = audioop.rms(data, 2) 
     #level = min(rms / (2.0 ** 16) * scale, 1.0) 
@@ -71,7 +71,11 @@ while data != '':
     #level = int(level * 255)
     #print level    
 
-    levels = calculate_levels(''.join(out), n_levels)     
+    #levels = calculate_levels(''.join(out), n_levels)     
+
+    mono_data = audioop.tomono(data, 2, 0.5, 0.5)
+    levels = calculate_levels(mono_data, n_levels)
+
     scale = 20
     for level in levels:
         level = max(min(level / scale, 1.0), 0.0)
@@ -106,7 +110,7 @@ while data != '':
     hue_min = 0
     hue_max = 60
     buf = [[0,0,0]] * udp_client.N_LEDS
-    leds_per_seg = 10
+    leds_per_seg = (udp_client.N_LEDS / n_levels) 
     idx_left = center_idx
     idx_right = center_idx
     for level_idx, level in enumerate(levels):
