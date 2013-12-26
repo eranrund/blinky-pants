@@ -12,7 +12,8 @@ def hsv(h, s, v):
 
 print hsv(50, 255, 255)
 
-UDP_IP = "192.168.0.103"
+#UDP_IP = "192.168.0.103"
+UDP_IP = '127.0.0.1'
 UDP_PORT = 9022
 N_LEDS = 228
 
@@ -23,8 +24,6 @@ from time import sleep
 
 sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) 
 cnt = 0
-
-sock.sendto('PAT\x00', (UDP_IP, UDP_PORT))
 
 def send_buf(buf):
     assert len(buf) == N_LEDS * 3
