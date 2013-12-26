@@ -1,3 +1,4 @@
+import mad
 import audioop
 import numpy
 import struct
@@ -7,23 +8,25 @@ import sys
 
 CHUNK = 1024
 
-if len(sys.argv) < 2:
-    print("Plays a wave file.\n\nUsage: %s filename.wav" % sys.argv[0])
-    sys.exit(-1)
-
-wf = wave.open(sys.argv[1], 'rb')
-#wf = wave.open(sys.stdin)
+# import subprocess as sp
+# pipe = sp.Popen([ '/usr/local/bin/ffmpeg',
+#         '-i', 'x.mp3',
+#         #'-f', 's16le',
+#         #'-acodec', 'pcm_s16le',
+#         #'-ar', '44100', # ouput will have 44100 Hz
+#         #'-ac', '2', # two channels: output will be stereo (set to 1 for mono)
+#         '-f', 'pcm_s16le',
+#         'pipe:1'],
+#         stdin=sp.PIPE, stdout=sp.PIPE, stderr=sp.PIPE)
 
 p = pyaudio.PyAudio()
 
-stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
+
+stream = p.open(format=p.get_format_from_width(2),
+                channels=2,
+                rate=44100,
                 output=True)
 
-print wf.getnchannels(), wf.getframerate(), wf.getsampwidth()
-while True:pass
-data = wf.readframes(CHUNK)
 
 
 chunk      = 2**11 # Change if too fast/slow, never less than 2**11
@@ -63,7 +66,12 @@ def calculate_levels(data, n_levels):
 from udp_client import send_buf2,hsv,N_LEDS
 n_levels =28 
 old_levels = [0] * n_levels
-while data != '':
+#data = wf.read()
+while True:
+    data = sys.stdin.read(8192)
+    if not data:
+        break
+ #   data = wf.read()
     #out = []
     #for i in range(0, len(data), 4):
     #    out.append(data[i:i+2])
@@ -79,7 +87,7 @@ while data != '':
     mono_data = audioop.tomono(data, 2, 0.5, 0.5)
     levels = calculate_levels(mono_data, n_levels)
 
-    scale = 20
+    scale = 50
     for level in levels:
         level = max(min(level / scale, 1.0), 0.0)
         level = level**exponent 
@@ -151,7 +159,6 @@ while data != '':
     # udp_client.send_buf2(reversed(buf))
 
     stream.write(data)
-    data = wf.readframes(CHUNK)
 
 stream.stop_stream()
 stream.close()
