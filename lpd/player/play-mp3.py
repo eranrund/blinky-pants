@@ -33,6 +33,7 @@ chunk      = 2**11 # Change if too fast/slow, never less than 2**11
 scale      = 50 #4    # Change if too dim/bright
 exponent   = 5     # Change if too little/too much difference between loud and quiet sounds
 samplerate = 44100 
+n_levels =28 
 
 import udp_client
 
@@ -64,7 +65,6 @@ def calculate_levels(data, n_levels):
     return levels
 
 from udp_client import send_buf2,hsv,N_LEDS
-n_levels =28 
 old_levels = [0] * n_levels
 #data = wf.read()
 while True:
@@ -127,7 +127,7 @@ while True:
     for level_idx, level in enumerate(levels):
         h = level_idx * leds_per_seg / 2
         for i in range(leds_per_seg / 2):            
-            c = hsv(h, 255, level)
+            c = hsv(h+i, 255, level)
             buf[idx_left] = c
             buf[idx_right] = c
 
