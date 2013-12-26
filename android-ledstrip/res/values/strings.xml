@@ -4,5 +4,6 @@
     <string name="app_name">ledstrip</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">LEDStrip</string>
+    <string name="Pattern">Pattern</string>
 
 </resources>

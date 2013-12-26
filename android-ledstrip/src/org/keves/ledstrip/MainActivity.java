@@ -23,10 +23,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
-public class MainActivity extends Activity implements OnColorChangedListener {
+public class MainActivity extends Activity implements OnColorChangedListener, OnItemSelectedListener {
 
 	DatagramSocket sock;
     InetAddress addr;
@@ -59,6 +63,32 @@ public class MainActivity extends Activity implements OnColorChangedListener {
 		                threadSearchBeacon();
 		            }
 		        }).start();		       				
+			}
+		});
+        
+        // Patten list
+        final Spinner dropdown = (Spinner)findViewById(R.id.patternSpinner);
+        final String[] items = new String[]{"RemoteControl", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "15"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items);
+        dropdown.setAdapter(adapter);
+        dropdown.setSelection(0);
+        dropdown.setOnItemSelectedListener(this);
+        
+        ((Button) findViewById(R.id.btnPatternPlus)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				int nextPat = (dropdown.getSelectedItemPosition() + 1) % items.length;
+				dropdown.setSelection(nextPat);
+				//onItemSelected(null, null, nextPat, 0);
+			}
+		});
+        ((Button) findViewById(R.id.btnPatternMinus)).setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				int nextPat = (dropdown.getSelectedItemPosition() - 1);
+				if (nextPat == -1) nextPat = items.length - 1;
+				dropdown.setSelection(nextPat);
+			//	onItemSelected(null, null, nextPat, 0);
 			}
 		});
         
@@ -183,6 +213,11 @@ public class MainActivity extends Activity implements OnColorChangedListener {
     		buf[(i * 3) + 2] = (byte) b;
     	}
     	
+    	send_buf(buf);
+    }
+    
+    void send_buf(byte[] buf) {
+    	
     	try {
 			addr = InetAddress.getByName(ipAddrText.getText().toString());
 		} catch (UnknownHostException e1) {
@@ -222,6 +257,25 @@ public class MainActivity extends Activity implements OnColorChangedListener {
 		lock.lock();
 		needSend.signal();
 		lock.unlock();
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int pos,long id) {
+		// TODO Auto-generated method stub
+		Log.e("XXX", "Pattern: "+pos);
+		
+		final byte[] buf = {'P', 'A', 'T', (byte) pos};
+		new Thread(new Runnable() {
+            public void run() {
+                send_buf(buf);
+            }
+        }).start();
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -43,4 +43,28 @@
         android:layout_alignTop="@+id/textIpAddr"
         android:text="Find" />
 
+    <Spinner
+        android:id="@+id/patternSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textIpAddr"
+        android:layout_below="@+id/textView1"
+        android:prompt="@string/Pattern" />
+
+    <Button
+        android:id="@+id/btnPatternPlus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/textIpAddr"
+        android:layout_alignTop="@+id/patternSpinner"
+        android:text="+" />
+
+    <Button
+        android:id="@+id/btnPatternMinus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/patternSpinner"
+        android:layout_toRightOf="@+id/btnPatternPlus"
+        android:text="-" />
+
 </RelativeLayout>
