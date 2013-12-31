@@ -1292,7 +1292,7 @@ void RandomMartch_pat()
   }
   if (loopCount > LED_COUNT) {
     for (int i = 0; i < loopCount - LED_COUNT; ++i) {
-        if (i >= LED_COUNT) i = 0; // safety
+        if (i >= LED_COUNT) break; // safety
         leds[i] = CRGB(0,0,0);
     }
   }
