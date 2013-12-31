@@ -30,9 +30,9 @@
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
 #define NUM_LEDS 106
-#define DATA_PIN 6
+#define DATA_PIN 13
 
-#define NEXT_PATTERN_BUTTON_PIN  2  // button between this pin and ground
+#define NEXT_PATTERN_BUTTON_PIN  0  // button between this pin and ground
 #define AUTOCYCLE_SWITCH_PIN  3  // switch between this pin and ground
 
 // Create a buffer for holding 509 colors.
