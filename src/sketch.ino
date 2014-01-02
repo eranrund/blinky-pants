@@ -31,6 +31,9 @@
 #include <EEPROM.h>
 #define NUM_LEDS 106
 #define DATA_PIN 13
+#define ENC1_PIN1 2
+#define ENC1_PIN2 3
+#define BRIGHTNESS_PIN A0
 
 #define NEXT_PATTERN_BUTTON_PIN  0  // button between this pin and ground
 #define AUTOCYCLE_SWITCH_PIN  3  // switch between this pin and ground
@@ -44,10 +47,14 @@
 CRGB leds[LED_COUNT];
 CRGB ledsX[LED_COUNT];
 
+#define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
+#define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
+
+
 
 ////
 #include <Encoder.h>
-Encoder enc1(2,3);
+Encoder enc1(ENC1_PIN1,ENC1_PIN2);
 
 
 // system timer, incremented by one every time through the main loop
@@ -64,19 +71,28 @@ enum Pattern {
     RandomMarch,
     Flame,
     Matrix,
-  WarmWhiteShimmer ,
-  RandomColorWalk,
-  TraditionalColors,
-  ColorExplosion,
-  Gradient,
-  BrightTwinkle,
-  Collision,
-  NUM_STATES,
-  AllOff = 255
+    WarmWhiteShimmer ,
+    RandomColorWalk,
+    TraditionalColors,
+    ColorExplosion,
+    Gradient,
+    BrightTwinkle,
+    Collision,
+    NUM_STATES,
+    AllOff = 255
 };
 
 unsigned char pattern = 0;
+bool pattern_auto_inc = true;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
+
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
 
 
 // initialization stuff
@@ -84,6 +100,12 @@ void setup()
 {
     Serial.begin(9600);
     Serial.println("OK");
+
+    // ADC
+    // set prescale to 16
+    sbi(ADCSRA,ADPS2);
+    cbi(ADCSRA,ADPS1);
+    cbi(ADCSRA,ADPS0);
 
   // initialize the random number generator with a seed obtained by
   // summing the voltages on the disconnected analog inputs
@@ -120,62 +142,148 @@ void setup()
 
 
 // main loop
-unsigned long enc_pos = 0;
-unsigned long last_pattern_change = 0;
-void loop()
+
+void loop_brightness()
 {
-    unsigned long new_pos;
+    static unsigned char cur_brightness = 255;
+    unsigned char brightness;
+
+    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
+    brightness = 32; // TODO
+    if (brightness != cur_brightness) {
+        cur_brightness = brightness;
+        FastLED.setBrightness(cur_brightness);
+    }
+}
+
+void loop_rotenc1()
+{
+    static long enc_pos = 0;
+    static unsigned long last_change = 0;
+    static unsigned char state = 0;
+    long new_pos;
     unsigned long now;
+    unsigned char old_state;
 
     new_pos = enc1.read();
 
-    if (enc_pos != new_pos) {
-        Serial.println(enc_pos);
-        enc_pos = new_pos;
-        now = millis();
-        if ((now - last_pattern_change) > 500) {
-            last_pattern_change = now;
-            pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
-            Serial.print("- ");
-            Serial.println(pattern);
+    if (enc_pos == new_pos) {
+        return;
+    }
+
+    Serial.println(enc_pos);
+    now = millis();
+    if ((now - last_change) > 300) {
+        last_change = now;
+        old_state = state;
+
+        if (new_pos > enc_pos) {
+            // move to next, if possible
+            if (state < NUM_STATES) {
+                state++;
+            } else {
+                copy_led_array();
+                efx_blink(0, 2);
+                uncopy_led_array();
+            }
+        } else {
+            // move back if possible
+            if (state > 0) {
+                state--;
+            } else {
+                copy_led_array();
+                efx_blink(0, 2);
+                uncopy_led_array();
+            }
+        }
+
+        if (state == 0) {
+            goto_pattern(0);
+            pattern_auto_inc = true;
+        } else {
+            goto_pattern(state - 1);
+            pattern_auto_inc = false;
+        }
+
+        Serial.print("Rot state: ");
+        Serial.println(state);
+    }
+    enc_pos = new_pos;
+}
+
+void loop_serial() {
+    unsigned char ch;
+    while (Serial.available()) {
+        ch = Serial.read();
+        switch (ch) {
+            case 'a':
+                pattern_auto_inc = !pattern_auto_inc;
+
+                /* fallthrough */
+            case '?':
+                Serial.print("Pattern: ");
+                if (pattern_auto_inc) {
+                   Serial.println("autoinc ");
+                }
+
+                Serial.println(pattern);
+                break;
+
+            case '+':
+                advance_pattern(true);
+                break;
+
+            case '-':
+                advance_pattern(false);
+                break;
         }
     }
+}
 
-    /*
-    if (new_pos != pos) {
-        pos = new_pos;
 
-        new_pos = pos >> 4;
-        if (pattern != new_pos) {
-            Serial.println(new_pos);
-            pattern = new_pos;
+void advance_pattern(bool dir) {
+    if (dir) {
+        pattern = ((unsigned char)(pattern + 1)) % NUM_STATES;
+    } else {
+        if (pattern == 0) {
+            pattern = NUM_STATES - 1;
+        } else {
+            --pattern;
         }
- //       Serial.println(pos);
-    }*/
-//  handleNextPatternButton();
-//pattern = Matrix;
-//
-
-  if (loopCount == 0)
-  {
-    // whenever timer resets, clear the LED colors array (all off)
-    for (int i = 0; i < LED_COUNT; i++)
-    {
-      leds[i] = CRGB(0, 0, 0);
     }
-  }
+    
+    goto_pattern(pattern);
+}
 
-  if (pattern == WarmWhiteShimmer || pattern == RandomColorWalk)
-  {
-    // for these two patterns, we want to make sure we get the same
-    // random sequence six times in a row (this provides smoother
-    // random fluctuations in brightness/color)
-    if (loopCount % 6 == 0)
-    {
-      seed = random(30000);
+void goto_pattern(unsigned char p) {
+    pattern = p;
+
+    Serial.print("P:");
+    Serial.println(pattern);
+}
+
+
+void loop()
+{
+    loop_brightness();
+    loop_rotenc1();
+    loop_serial();
+
+    // Clear leds on start of loop
+    if (loopCount == 0) {
+        memset(leds, 0, sizeof(leds));
     }
-    randomSeed(seed);
-  }
+
+    if (pattern == WarmWhiteShimmer || pattern == RandomColorWalk) {
+        // for these two patterns, we want to make sure we get the same
+        // random sequence six times in a row (this provides smoother
+        // random fluctuations in brightness/color)
+        if (loopCount % 6 == 0) {
+            seed = random(30000);
+        }
+
+        randomSeed(seed);
+    }
 
   // call the appropriate pattern routine based on state; these
   // routines just set the colors in the colors array
@@ -298,14 +406,14 @@ void loop()
   FastLED.show();
   loopCount++;  // increment our loop counter/timer.
 
-  if (loopCount >= maxLoops && 1) // TODO digitalRead(AUTOCYCLE_SWITCH_PIN))
-  {
-    // if the time is up for the current pattern and the optional hold
-    // switch is not grounding the AUTOCYCLE_SWITCH_PIN, clear the
-    // loop counter and advance to the next pattern in the cycle
-    loopCount = 0;  // reset timer
-    // AUTO ADVANCE pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
-  }
+    if (loopCount >= maxLoops && 1) {
+        loopCount = 0;
+
+        // AUTO ADVANCE
+        if (pattern_auto_inc) {
+            advance_pattern(true);
+        }
+    }
 }
 
 
@@ -1101,8 +1209,6 @@ int adjacent_ccw(int i) {
 }
 
 
-#define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
-
 void RandomMartch_pat()
 {
   int iCCW;
@@ -1168,4 +1274,22 @@ void Matrix_pat() {
     leds[i].b = ledsX[i-1][2];    
   }
   delay(50);
+}
+
+
+void efx_blink(int h, int repeats) {
+    for (int cnt = 0; cnt < repeats; ++cnt) {
+        for (int v = 50; v < 255; v += 3) {
+            for (int i = 0; i < LED_COUNT; ++i) {
+                leds[i] = CHSV(h, 255, v);
+            }
+            LEDS.show();
+        }
+        for (int v = 255; v > 50; v -= 3) {
+            for (int i = 0; i < LED_COUNT; ++i) {
+                leds[i] = CHSV(h, 255, v);
+            }
+            LEDS.show();
+        }
+    }
 }
