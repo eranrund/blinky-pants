@@ -33,7 +33,8 @@
 #define DATA_PIN 13
 #define ENC1_PIN1 2
 #define ENC1_PIN2 3
-#define BRIGHTNESS_PIN A0
+#define BRIGHTNESS_PIN A1
+#define SPEED_PIN A0
 
 #define NEXT_PATTERN_BUTTON_PIN  0  // button between this pin and ground
 #define AUTOCYCLE_SWITCH_PIN  3  // switch between this pin and ground
@@ -103,9 +104,9 @@ void setup()
 
     // ADC
     // set prescale to 16
-    sbi(ADCSRA,ADPS2);
-    cbi(ADCSRA,ADPS1);
-    cbi(ADCSRA,ADPS0);
+    //sbi(ADCSRA,ADPS2);
+    //cbi(ADCSRA,ADPS1);
+    //cbi(ADCSRA,ADPS0);
 
   // initialize the random number generator with a seed obtained by
   // summing the voltages on the disconnected analog inputs
@@ -150,9 +151,17 @@ void loop_brightness()
 
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
     brightness = 32; // TODO
-    if (brightness != cur_brightness) {
+    if (abs(brightness - cur_brightness) > 5) {
+        if (brightness < 7) {
+            FastLED.setBrightness(0);
+        } else if (brightness > 249) {
+            FastLED.setBrightness(255);
+        } else {            
+            FastLED.setBrightness(brightness);
+        }
+        Serial.print("Brightness: ");
+        Serial.println(brightness);
         cur_brightness = brightness;
-        FastLED.setBrightness(cur_brightness);
     }
 }
 
@@ -265,9 +274,15 @@ void goto_pattern(unsigned char p) {
 
 void loop()
 {
+    int speed;
+
     loop_brightness();
     loop_rotenc1();
     loop_serial();
+
+    // Get speed
+    speed = (analogRead(SPEED_PIN) >> 3) - 64;
+    Serial.println(speed);
 
     // Clear leds on start of loop
     if (loopCount == 0) {
