@@ -232,10 +232,12 @@ void loop_serial() {
             case '?':
                 Serial.print("Pattern: ");
                 if (pattern_auto_inc) {
-                   Serial.println("autoinc ");
+                   Serial.print("autoinc ");
                 }
-
                 Serial.println(pattern);
+
+                Serial.print("Speed: ");
+                Serial.println(g_speed);
                 break;
 
             case '+':
@@ -272,17 +274,22 @@ void goto_pattern(unsigned char p) {
 }
 
 
+int g_speed;
+inline void speed_delay(int speed, int delay_time) {
+   delay(map(speed, 0, 127, 0, delay_time * 7));
+}
+inline void update_g_speed() {
+    g_speed = (analogRead(SPEED_PIN) >> 3);
+}
+
 void loop()
 {
-    int speed;
-
     loop_brightness();
     loop_rotenc1();
     loop_serial();
 
     // Get speed
-    speed = (analogRead(SPEED_PIN) >> 3) - 64;
-    Serial.println(speed);
+    update_g_speed();
 
     // Clear leds on start of loop
     if (loopCount == 0) {
@@ -307,12 +314,13 @@ void loop()
     case SimpleHSV:
         maxLoops = 400;
         SimpleHSV_pat();
+        speed_delay(g_speed, 6);
         break;
 
     case SymSimpleHSV:        
         maxLoops = 256;
         SymSimpleHSV_pat();
-        delay(6);
+        speed_delay(g_speed, 6);
         break;
 
     case EMS:
@@ -328,7 +336,7 @@ void loop()
     case RandomMarch:
         maxLoops = LED_COUNT * 2;
         RandomMartch_pat();
-        delay(24);
+        speed_delay(g_speed, 24);
         break;
 
     case Flame:
@@ -376,7 +384,7 @@ void loop()
       // waves of dimness that also scroll (at twice the speed)
       maxLoops = 250;
       gradient();
-      delay(6);  // add an extra 6ms delay to slow things down
+      speed_delay(g_speed, 6);  // add an extra 6ms delay to slow things down
       break;
 
     case BrightTwinkle:
@@ -414,6 +422,9 @@ void loop()
       {
         maxLoops = loopCount + 2;
       }
+      if (g_speed > 64) {
+            speed_delay(g_speed, 3);
+        }
       break;
   }
 
@@ -1200,7 +1211,7 @@ void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
 
   if ((loopCount % 3) == 0) ++thishue;
 
-  delay(30);
+  speed_delay(g_speed, 30);
 }
 
 void Flicker_pat() {
@@ -1211,7 +1222,7 @@ void Flicker_pat() {
     for(int i = 0 ; i < LED_COUNT; i++ ) {
       leds[i] = CHSV(160, 50, random_bright);
     }
-    delay(random_delay);
+    speed_delay(g_speed, random_delay);
   }
 
 }
@@ -1270,7 +1281,7 @@ void Flame_pat() {
     leds[j1] = CHSV(ghue, thissat, 255);
     leds[j2] = CHSV(bhue, thissat, 255);    
   }
-  delay(10);
+  speed_delay(g_speed, 10);
 }
 
 void Matrix_pat() {
@@ -1288,7 +1299,7 @@ void Matrix_pat() {
     leds[i].g = ledsX[i-1][1];
     leds[i].b = ledsX[i-1][2];    
   }
-  delay(50);
+  speed_delay(g_speed, 50);
 }
 
 
