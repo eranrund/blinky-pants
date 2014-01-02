@@ -45,6 +45,11 @@ CRGB leds[LED_COUNT];
 CRGB ledsX[LED_COUNT];
 
 
+////
+#include <Encoder.h>
+Encoder enc1(2,3);
+
+
 // system timer, incremented by one every time through the main loop
 unsigned int loopCount = 0;
 
@@ -70,13 +75,16 @@ enum Pattern {
   AllOff = 255
 };
 
-unsigned char pattern = AllOff;
+unsigned char pattern = 0;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
 
 // initialization stuff
 void setup()
 {
+    Serial.begin(9600);
+    Serial.println("OK");
+
   // initialize the random number generator with a seed obtained by
   // summing the voltages on the disconnected analog inputs
   for (int i = 0; i < 8; i++)
@@ -112,10 +120,41 @@ void setup()
 
 
 // main loop
+unsigned long enc_pos = 0;
+unsigned long last_pattern_change = 0;
 void loop()
 {
-  handleNextPatternButton();
+    unsigned long new_pos;
+    unsigned long now;
+
+    new_pos = enc1.read();
+
+    if (enc_pos != new_pos) {
+        Serial.println(enc_pos);
+        enc_pos = new_pos;
+        now = millis();
+        if ((now - last_pattern_change) > 500) {
+            last_pattern_change = now;
+            pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
+            Serial.print("- ");
+            Serial.println(pattern);
+        }
+    }
+
+    /*
+    if (new_pos != pos) {
+        pos = new_pos;
+
+        new_pos = pos >> 4;
+        if (pattern != new_pos) {
+            Serial.println(new_pos);
+            pattern = new_pos;
+        }
+ //       Serial.println(pos);
+    }*/
+//  handleNextPatternButton();
 //pattern = Matrix;
+//
 
   if (loopCount == 0)
   {
@@ -265,7 +304,7 @@ void loop()
     // switch is not grounding the AUTOCYCLE_SWITCH_PIN, clear the
     // loop counter and advance to the next pattern in the cycle
     loopCount = 0;  // reset timer
-    pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
+    // AUTO ADVANCE pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
   }
 }
 
@@ -1062,12 +1101,12 @@ int adjacent_ccw(int i) {
 }
 
 
-#define copy_led_array() memcpy(&ledsX, &leds, sizeof(leds))
+#define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
 
 void RandomMartch_pat()
 {
-  copy_led_array();
   int iCCW;
+  copy_led_array();
   leds[0] = CHSV(random(0,255), 255, 255);
   for(int idex = 1; idex < LED_COUNT ; idex++ ) {
     iCCW = adjacent_ccw(idex);
@@ -1077,7 +1116,7 @@ void RandomMartch_pat()
   }
   if (loopCount > LED_COUNT) {
     for (int i = 0; i < loopCount - LED_COUNT; ++i) {
-        if (i >= LED_COUNT) i = 0; // safety
+        if (i >= LED_COUNT) break;
         leds[i] = CRGB(0,0,0);
     }
   }
