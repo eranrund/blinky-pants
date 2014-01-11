@@ -1,0 +1,6 @@
+check INT pins for rotenc/buttons
+check analog pins
+check usb + usb uart if possible?
+add header for connecting LED strip(s)
+add header for EXT VCC/GND
+add mounting holes in corners
