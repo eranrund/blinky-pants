@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="10" unitdist="mil" unit="mil" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="10" unitdist="mil" unit="mm" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -34,8 +34,8 @@
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
@@ -140,34 +140,34 @@
 <circle x="4.318" y="59.69" radius="1.016" width="0.254" layer="21"/>
 <circle x="4.318" y="44.45" radius="1.016" width="0.254" layer="21"/>
 <circle x="19.558" y="44.45" radius="1.016" width="0.254" layer="21"/>
-<text x="6.604" y="44.069" size="1.016" layer="21" ratio="15" rot="R90">9</text>
-<text x="6.604" y="46.609" size="1.016" layer="21" ratio="15" rot="R90">8</text>
-<text x="6.604" y="49.149" size="1.016" layer="21" ratio="15" rot="R90">7</text>
-<text x="6.604" y="51.689" size="1.016" layer="21" ratio="15" rot="R90">6</text>
-<text x="6.604" y="54.229" size="1.016" layer="21" ratio="15" rot="R90">5</text>
-<text x="6.604" y="56.769" size="1.016" layer="21" ratio="15" rot="R90">4</text>
-<text x="6.604" y="59.309" size="1.016" layer="21" ratio="15" rot="R90">3</text>
-<text x="6.604" y="61.849" size="1.016" layer="21" ratio="15" rot="R90">2</text>
-<text x="6.477" y="63.754" size="0.8128" layer="21" ratio="15" rot="R90">GND</text>
-<text x="6.477" y="66.294" size="0.8128" layer="21" ratio="15" rot="R90">GND</text>
-<text x="6.477" y="68.834" size="0.8128" layer="21" ratio="15" rot="R90">RXI</text>
-<text x="6.477" y="71.374" size="0.8128" layer="21" ratio="15" rot="R90">TXO</text>
-<text x="18.415" y="71.374" size="0.8128" layer="21" ratio="15" rot="R90">RAW</text>
-<text x="18.415" y="68.834" size="0.8128" layer="21" ratio="15" rot="R90">GND</text>
-<text x="18.415" y="66.294" size="0.8128" layer="21" ratio="15" rot="R90">RST</text>
-<text x="18.415" y="63.754" size="0.8128" layer="21" ratio="15" rot="R90">VCC</text>
-<text x="18.415" y="61.468" size="1.016" layer="21" ratio="15" rot="R90">A3</text>
-<text x="18.415" y="58.928" size="1.016" layer="21" ratio="15" rot="R90">A2</text>
-<text x="18.415" y="56.388" size="1.016" layer="21" ratio="15" rot="R90">A1</text>
-<text x="18.415" y="53.848" size="1.016" layer="21" ratio="15" rot="R90">A0</text>
-<text x="18.415" y="51.308" size="1.016" layer="21" ratio="15" rot="R90">15</text>
-<text x="18.415" y="48.768" size="1.016" layer="21" ratio="15" rot="R90">14</text>
-<text x="18.415" y="46.228" size="1.016" layer="21" ratio="15" rot="R90">16</text>
-<text x="18.161" y="43.434" size="1.016" layer="21" ratio="15" rot="R90">10</text>
-<text x="4.699" y="65.405" size="0.8128" layer="21" ratio="15" rot="R90">J1</text>
+<text x="6.604" y="44.069" size="1.016" layer="21" font="vector" ratio="15" rot="R90">9</text>
+<text x="6.604" y="46.609" size="1.016" layer="21" font="vector" ratio="15" rot="R90">8</text>
+<text x="6.604" y="49.149" size="1.016" layer="21" font="vector" ratio="15" rot="R90">7</text>
+<text x="6.604" y="51.689" size="1.016" layer="21" font="vector" ratio="15" rot="R90">6</text>
+<text x="6.604" y="54.229" size="1.016" layer="21" font="vector" ratio="15" rot="R90">5</text>
+<text x="6.604" y="56.769" size="1.016" layer="21" font="vector" ratio="15" rot="R90">4</text>
+<text x="6.604" y="59.309" size="1.016" layer="21" font="vector" ratio="15" rot="R90">3</text>
+<text x="6.604" y="61.849" size="1.016" layer="21" font="vector" ratio="15" rot="R90">2</text>
+<text x="6.477" y="63.754" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">GND</text>
+<text x="6.477" y="66.294" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">GND</text>
+<text x="6.477" y="68.834" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">RXI</text>
+<text x="6.477" y="71.374" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">TXO</text>
+<text x="18.415" y="71.374" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">RAW</text>
+<text x="18.415" y="68.834" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">GND</text>
+<text x="18.415" y="66.294" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">RST</text>
+<text x="18.415" y="63.754" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">VCC</text>
+<text x="18.415" y="61.468" size="1.016" layer="21" font="vector" ratio="15" rot="R90">A3</text>
+<text x="18.415" y="58.928" size="1.016" layer="21" font="vector" ratio="15" rot="R90">A2</text>
+<text x="18.415" y="56.388" size="1.016" layer="21" font="vector" ratio="15" rot="R90">A1</text>
+<text x="18.415" y="53.848" size="1.016" layer="21" font="vector" ratio="15" rot="R90">A0</text>
+<text x="18.415" y="51.308" size="1.016" layer="21" font="vector" ratio="15" rot="R90">15</text>
+<text x="18.415" y="48.768" size="1.016" layer="21" font="vector" ratio="15" rot="R90">14</text>
+<text x="18.415" y="46.228" size="1.016" layer="21" font="vector" ratio="15" rot="R90">16</text>
+<text x="18.161" y="43.434" size="1.016" layer="21" font="vector" ratio="15" rot="R90">10</text>
+<text x="4.699" y="65.405" size="0.8128" layer="21" font="vector" ratio="15" rot="R90">J1</text>
 <wire x1="40" y1="0" x2="0" y2="0" width="0.2032" layer="20"/>
-<text x="17.526" y="13.97" size="1.778" layer="25" rot="R90">BlinkyPants v1.0</text>
-<text x="20.32" y="13.716" size="1.778" layer="25" rot="R90">Eran Rundstein</text>
+<text x="17.526" y="13.97" size="1.778" layer="25" font="vector" rot="R90">BlinkyPants v1.0</text>
+<text x="20.32" y="13.716" size="1.778" layer="25" font="vector" rot="R90">Eran Rundstein</text>
 </plain>
 <libraries>
 <library name="SparkFun">
@@ -1832,9 +1832,18 @@ Please make sure your boards conform to these design rules.</description>
 <element name="C2" library="rcl" package="C025-025X050" value="0.1uF" x="27.686" y="35.306" rot="R270"/>
 <element name="C3" library="rcl" package="C025-025X050" value="0.1uF" x="36.83" y="10.16"/>
 <element name="C4" library="rcl" package="C025-025X050" value="0.1uF" x="7.874" y="36.322" rot="R90"/>
-<element name="R1" library="rcl" package="0204/5" value="47K" x="29.718" y="68.58" rot="R270"/>
-<element name="R2" library="rcl" package="0204/5" value="47K" x="32.004" y="68.58" rot="R270"/>
-<element name="R3" library="rcl" package="0204/5" value="47K" x="27.432" y="68.58" rot="R90"/>
+<element name="R1" library="rcl" package="0204/5" value="47K" x="29.718" y="68.58" smashed="yes" rot="R270">
+<attribute name="NAME" x="28.9814" y="64.1604" size="0.9906" layer="25" font="vector" ratio="10"/>
+<attribute name="VALUE" x="29.1846" y="69.9516" size="0.9906" layer="27" font="vector" ratio="10" rot="R270"/>
+</element>
+<element name="R2" library="rcl" package="0204/5" value="47K" x="32.004" y="68.58" smashed="yes" rot="R270">
+<attribute name="NAME" x="31.2674" y="64.1604" size="0.9906" layer="25" font="vector" ratio="10"/>
+<attribute name="VALUE" x="31.4706" y="69.9516" size="0.9906" layer="27" font="vector" ratio="10" rot="R270"/>
+</element>
+<element name="R3" library="rcl" package="0204/5" value="47K" x="27.432" y="68.58" smashed="yes" rot="R90">
+<attribute name="NAME" x="26.6954" y="64.1604" size="0.9906" layer="25" font="vector" ratio="10"/>
+<attribute name="VALUE" x="27.9654" y="67.2084" size="0.9906" layer="27" font="vector" ratio="10" rot="R90"/>
+</element>
 <element name="U$5" library="rotary-encoder" package="EN11-VS*" value="EN11-VSM1AF20" x="35.56" y="35.56" rot="R90"/>
 <element name="R4" library="rcl" package="0204/5" value="47K" x="25.146" y="44.45" rot="R270"/>
 <element name="R5" library="rcl" package="0204/5" value="47K" x="26.162" y="29.21" rot="R90"/>
@@ -1858,8 +1867,14 @@ Please make sure your boards conform to these design rules.</description>
 <attribute name="OC_FARNELL" value="unknown" x="4.318" y="19.05" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
 <element name="C5" library="rcl" package="E3,5-8" value="100uF" x="11.938" y="11.176" rot="R180"/>
-<element name="C6" library="rcl" package="C025-024X044" value="0.1uF" x="26.416" y="58.42"/>
-<element name="C7" library="rcl" package="C025-024X044" value="0.1uF" x="26.416" y="60.96"/>
+<element name="C6" library="rcl" package="C025-024X044" value="0.1uF" x="26.416" y="58.42" smashed="yes">
+<attribute name="NAME" x="26.416" y="55.753" size="1.27" layer="25" font="vector" ratio="10"/>
+<attribute name="VALUE" x="24.638" y="55.753" size="1.27" layer="27" font="vector" ratio="10"/>
+</element>
+<element name="C7" library="rcl" package="C025-024X044" value="0.1uF" x="26.416" y="60.96" smashed="yes">
+<attribute name="NAME" x="26.416" y="62.611" size="1.27" layer="25" font="vector" ratio="10"/>
+<attribute name="VALUE" x="24.384" y="60.325" size="1.27" layer="27" font="vector" ratio="10"/>
+</element>
 <element name="C8" library="rcl" package="C025-024X044" value="0.1uF" x="28.194" y="30.48" rot="R90"/>
 <element name="C9" library="rcl" package="C025-024X044" value="0.1uF" x="27.686" y="43.18" rot="R270"/>
 <element name="S1" library="SparkFun-Electromechanical" package="TACTILE-PTH" value="" x="12.446" y="68.58" rot="MR270"/>
