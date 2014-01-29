@@ -1,0 +1,10 @@
+Jinja2==2.7.2
+MarkupSafe==0.18
+argparse==1.2.1
+configobj==4.7.2
+ino==0.3.6
+numpy==1.8.0
+ordereddict==1.1
+pymad==0.6
+pyserial==2.7
+wsgiref==0.1.2
