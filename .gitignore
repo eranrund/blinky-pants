@@ -1,4 +1,7 @@
 *.swp
+*.b#*
+*.s#*
+*.l#*
 *.pyc
 .build
 android-ledstrip/bin
