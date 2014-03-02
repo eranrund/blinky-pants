@@ -29,8 +29,8 @@
  */
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
-#define NUM_LEDS 106
-#define DATA_PIN 13
+#define NUM_LEDS 200 
+#define DATA_PIN 9
 #define ENC1_PIN1 2
 #define ENC1_PIN2 3
 #define BRIGHTNESS_PIN A1
@@ -61,6 +61,7 @@ Encoder enc1(ENC1_PIN1,ENC1_PIN2);
 // system timer, incremented by one every time through the main loop
 unsigned int loopCount = 0;
 
+int g_speed;
 unsigned int seed = 0;  // used to initialize random number generator
 
 // enumerate the possible patterns in the order they will cycle
@@ -150,7 +151,7 @@ void loop_brightness()
     unsigned char brightness;
 
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
-    brightness = 32; // TODO
+//    brightness = 32; // TODO
     if (abs(brightness - cur_brightness) > 5) {
         if (brightness < 7) {
             FastLED.setBrightness(0);
@@ -274,7 +275,6 @@ void goto_pattern(unsigned char p) {
 }
 
 
-int g_speed;
 inline void speed_delay(int speed, int delay_time) {
    delay(map(speed, 0, 127, 0, delay_time * 7));
 }
