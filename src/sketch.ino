@@ -137,6 +137,8 @@ enum Pattern {
 #if PANTS_VERSION == 2
     RingsHSV,
     ShootRings,
+    SpinningRings,
+    SpinningRingsSym,
 #endif
 
     NUM_STATES,
@@ -144,9 +146,9 @@ enum Pattern {
 };
 
 //unsigned char pattern = 0;
-//bool pattern_auto_inc = true;
-unsigned char pattern = RingsHSV;
-bool pattern_auto_inc = false;
+bool pattern_auto_inc = true;
+unsigned char pattern = SpinningRings;
+//bool pattern_auto_inc = false;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
 #ifndef cbi
@@ -517,6 +519,17 @@ void loop()
       maxLoops = 400;
       ShootRings_Loop();
       break;
+
+    case SpinningRings:
+      maxLoops = 400;
+      SpinningRings_Loop(false);
+      break;
+      
+    case SpinningRingsSym:
+      maxLoops = 400;
+      SpinningRings_Loop(true);
+      break;
+
 
   }
 
@@ -1462,6 +1475,10 @@ public:
         }
     }
 
+    void clearRange(unsigned char range) {
+        memset(&(leds[ranges[range].start]), 0, (ranges[range].end - ranges[range].start + 1) * sizeof(CRGB));
+    }
+
 };
 
 class HSVPattern : public BasePattern {
@@ -1485,23 +1502,43 @@ public:
     }
 };
 
-class ShootRingsPattern : public BasePattern {
+class RingsPatterns : public BasePattern {
 public:
-   ShootRingsPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+   RingsPatterns(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
     }
 
-    void loop() {
+    void loop_shoot() {
         int half = n_ranges / 2;
         for (int i = 0; i < half; ++i) {
             int cur_range = loopCount % half;
             CRGB rgb;
             if (cur_range == i) {
                 rgb = CHSV(loopCount % 255, 255, 255);
+                setRange(i, rgb);
+                setRange(half + i, rgb);
             } else {
-                rgb = CRGB::Black;
+                clearRange(i);
+                clearRange(half + i);
             }
-            setRange(i, rgb);
-            setRange(half + i, rgb);
+        }
+    }
+
+    void loop_spinning(bool sym) {
+        for (int i = 0; i < n_ranges; ++i) {
+            clearRange(i);
+
+        
+            int range_leds = ranges[i].end - ranges[i].start + 1;
+            int led_idx = map(loopCount % 30, 0, 30, 0, range_leds);
+
+            if (sym && (i >= (n_ranges/2))) {
+                led_idx = range_leds - led_idx - 1;
+            }
+
+ 
+            for (int j = 0; j < 3; ++j) {
+                leds[ranges[i].start + ((led_idx + j) % range_leds)] = CHSV((loopCount + (j*2)) % 255, 255, 255);
+            }
         }
     }
 };
@@ -1510,7 +1547,7 @@ public:
 HSVPattern RingsHSV_pattern(rings, n_rings, 230, 90);
 HSVPattern LinesHSV_pattern(lines, n_lines, 110, 100);
 
-ShootRingsPattern ShootRings_pattern(rings, n_rings);
+RingsPatterns Rings_pattern(rings, n_rings);
 
 
 void RingsHSV_Loop() {
@@ -1520,6 +1557,11 @@ void RingsHSV_Loop() {
 }
 
 void ShootRings_Loop() {
-    ShootRings_pattern.loop();
+    Rings_pattern.loop_shoot();
+    speed_delay(g_speed, 20);
+}
+
+void SpinningRings_Loop(bool sym) {
+    Rings_pattern.loop_spinning(sym);
     speed_delay(g_speed, 20);
 }
