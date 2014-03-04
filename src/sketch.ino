@@ -136,6 +136,7 @@ enum Pattern {
 
 #if PANTS_VERSION == 2
     RingsHSV,
+    ShootRings,
 #endif
 
     NUM_STATES,
@@ -508,9 +509,15 @@ void loop()
       break;
 
     case RingsHSV:
-      maxLoops = 0xffffffff;
+      maxLoops = 400;
       RingsHSV_Loop();
       break;
+
+    case ShootRings:
+      maxLoops = 400;
+      ShootRings_Loop();
+      break;
+
   }
 
   // update the LED strips with the colors in the colors array
@@ -1478,10 +1485,41 @@ public:
     }
 };
 
+class ShootRingsPattern : public BasePattern {
+public:
+   ShootRingsPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+    }
+
+    void loop() {
+        int half = n_ranges / 2;
+        for (int i = 0; i < half; ++i) {
+            int cur_range = loopCount % half;
+            CRGB rgb;
+            if (cur_range == i) {
+                rgb = CHSV(loopCount % 255, 255, 255);
+            } else {
+                rgb = CRGB::Black;
+            }
+            setRange(i, rgb);
+            setRange(half + i, rgb);
+        }
+    }
+};
+
+
 HSVPattern RingsHSV_pattern(rings, n_rings, 230, 90);
 HSVPattern LinesHSV_pattern(lines, n_lines, 110, 100);
+
+ShootRingsPattern ShootRings_pattern(rings, n_rings);
+
+
 void RingsHSV_Loop() {
     RingsHSV_pattern.loop();
     LinesHSV_pattern.loop();
+    speed_delay(g_speed, 20);
+}
+
+void ShootRings_Loop() {
+    ShootRings_pattern.loop();
     speed_delay(g_speed, 20);
 }
