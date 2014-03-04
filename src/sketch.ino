@@ -29,7 +29,57 @@
  */
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
-#define NUM_LEDS 200 
+
+#define PANTS_VERSION 2
+
+#if PANTS_VERSION == 1
+#define NUM_LEDS 106
+#elif PANTS_VERSION == 2
+#define NUM_LEDS 192
+
+typedef struct led_range_s {
+    unsigned char start;
+    unsigned char end;
+} led_range_t;
+
+const led_range_t rings[] = {
+    // left
+    {0, 17},
+    {20, 35},
+    {38, 51},
+    {55, 67},
+    {70, 82},
+    {85, 95},
+
+    // right
+    {96, 113},
+    {116, 131},
+    {134, 148},
+    {152, 164},
+    {167, 178},
+    {181, 191},
+};
+
+const led_range_t lines[] = {
+    // left
+    {18, 20},
+    {36, 38},
+    {52, 55},
+    {68, 69},
+    {83, 84},
+
+    // right
+    {96, 96},
+    {114, 116},
+    {131, 134},
+    {149, 151},
+    {165, 167},
+    {179, 181},
+};
+
+#endif
+
+
 #define DATA_PIN 9
 #define ENC1_PIN1 2
 #define ENC1_PIN2 3
@@ -131,7 +181,11 @@ void setup()
 
   delay(10);  // give pull-ups time raise the input voltage
 
+#if PANTS_VERSION == 1
     FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+#elif PANTS_VERSION == 2
+    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
+#endif
     FastLED.setBrightness(128);
     pinMode(DATA_PIN, OUTPUT);
 
@@ -144,12 +198,12 @@ void setup()
 
 
 // main loop
-
+unsigned char cur_brightness = 255;
 void loop_brightness()
 {
-    static unsigned char cur_brightness = 255;
     unsigned char brightness;
 
+#if 0
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
 //    brightness = 32; // TODO
     if (abs(brightness - cur_brightness) > 5) {
@@ -164,6 +218,13 @@ void loop_brightness()
         Serial.println(brightness);
         cur_brightness = brightness;
     }
+#else
+    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
+    if (brightness != cur_brightness) {
+        FastLED.setBrightness(brightness);
+        cur_brightness = brightness;
+    }
+#endif
 }
 
 void loop_rotenc1()
@@ -239,6 +300,9 @@ void loop_serial() {
 
                 Serial.print("Speed: ");
                 Serial.println(g_speed);
+
+                Serial.print("Brightness: ");
+                Serial.println(cur_brightness);
                 break;
 
             case '+':

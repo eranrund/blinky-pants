@@ -1,6 +1,6 @@
 #include "FastSPI_LED2.h"
 
-#define LED_COUNT 200 
+#define LED_COUNT 300 
 #define DATA_PIN 9
 
 CRGB leds[LED_COUNT];
@@ -10,7 +10,7 @@ void setup()
     Serial.begin(9600);
     Serial.println("OK");
 
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, LED_COUNT);
+    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, LED_COUNT);
     FastLED.setBrightness(128);
     pinMode(DATA_PIN, OUTPUT);
 
