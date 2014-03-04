@@ -59,23 +59,26 @@ const led_range_t rings[] = {
     {167, 178},
     {181, 191},
 };
+#define n_rings (sizeof(rings)/sizeof(rings[0]))
 
 const led_range_t lines[] = {
     // left
-    {18, 20},
-    {36, 38},
-    {52, 55},
-    {68, 69},
-    {83, 84},
+    {18, 18}, // 1
+    {19, 20}, // 2
+    {36, 38}, // 3
+    {52, 55}, // 3
+    {68, 69}, // 2
+    {83, 84}, // 3
 
     // right
-    {96, 96},
-    {114, 116},
-    {131, 134},
-    {149, 151},
-    {165, 167},
-    {179, 181},
+    {96, 96},   // 1
+    {114, 116}, // 3
+    {131, 134}, // 4
+    {149, 151}, // 3
+    {165, 167}, // 3
+    {179, 181}, // 3
 };
+#define n_lines (sizeof(lines)/sizeof(lines[0]))
 
 #endif
 
@@ -130,12 +133,19 @@ enum Pattern {
     Gradient,
     BrightTwinkle,
     Collision,
+
+#if PANTS_VERSION == 2
+    RingsHSV,
+#endif
+
     NUM_STATES,
     AllOff = 255
 };
 
-unsigned char pattern = 0;
-bool pattern_auto_inc = true;
+//unsigned char pattern = 0;
+//bool pattern_auto_inc = true;
+unsigned char pattern = RingsHSV;
+bool pattern_auto_inc = false;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
 #ifndef cbi
@@ -198,12 +208,12 @@ void setup()
 
 
 // main loop
-unsigned char cur_brightness = 255;
+unsigned char cur_brightness = 16;
 void loop_brightness()
 {
     unsigned char brightness;
 
-#if 0
+#if PANTS_VERSION == 1
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
 //    brightness = 32; // TODO
     if (abs(brightness - cur_brightness) > 5) {
@@ -218,8 +228,14 @@ void loop_brightness()
         Serial.println(brightness);
         cur_brightness = brightness;
     }
-#else
+#elif PANTS_VERSION == 2
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
+    if (brightness != cur_brightness) {
+        FastLED.setBrightness(brightness);
+        cur_brightness = brightness;
+    }
+#else
+    brightness = 32;
     if (brightness != cur_brightness) {
         FastLED.setBrightness(brightness);
         cur_brightness = brightness;
@@ -353,7 +369,7 @@ void loop()
     loop_serial();
 
     // Get speed
-    update_g_speed();
+    update_g_speed();    
 
     // Clear leds on start of loop
     if (loopCount == 0) {
@@ -489,6 +505,11 @@ void loop()
       if (g_speed > 64) {
             speed_delay(g_speed, 3);
         }
+      break;
+
+    case RingsHSV:
+      maxLoops = 0xffffffff;
+      RingsHSV_Loop();
       break;
   }
 
@@ -1382,4 +1403,85 @@ void efx_blink(int h, int repeats) {
             LEDS.show();
         }
     }
+}
+
+
+class BasePattern {
+public:
+    const led_range_t * ranges;
+    unsigned char n_ranges;
+    unsigned short n_leds;
+
+    BasePattern(const led_range_t * ranges, unsigned char n_ranges) {
+        this->ranges = ranges;
+        this->n_ranges = n_ranges;
+        this->n_leds = 0;
+
+        for (unsigned char i = 0; i < n_ranges; ++i) {
+            this->n_leds += ranges[i].end - ranges[i].start + 1;
+        }
+    }
+
+    CRGB * pixel(unsigned char idx) {
+        unsigned char cur_idx = 0;
+        unsigned char n_leds;
+        for (unsigned char range = 0; range < this->n_ranges; ++range) {
+            n_leds = this->ranges[range].end - this->ranges[range].start + 1;
+            
+            if ((cur_idx + n_leds) <= idx) {
+                cur_idx += n_leds;
+            } else {
+                return &(leds[
+                    this->ranges[range].start + (idx - cur_idx)
+                ]);
+            }
+        }
+
+        while(1) {
+            Serial.println("fuck");
+        }
+    }
+
+    void setPixel(unsigned char idx, CRGB val) {
+        CRGB * pix = this->pixel(idx);
+        pix->r = val.r;
+        pix->g = val.g;
+        pix->b = val.b;
+    }    
+    void setRange(unsigned char range, CRGB val) {
+        for (unsigned char i = ranges[range].start; i <= ranges[range].end; ++i )
+        {
+            leds[i] = val;
+        }
+    }
+
+};
+
+class HSVPattern : public BasePattern {
+public:
+    unsigned char start_hsv;
+    unsigned char num_hsvs;
+
+    HSVPattern(const led_range_t * ranges, unsigned char n_ranges, unsigned char start_hsv, unsigned char num_hsvs) : BasePattern(ranges, n_ranges) {
+        this->start_hsv = start_hsv;
+        this->num_hsvs = num_hsvs;
+    }
+
+    void loop() {
+        for (int i = 0; i < n_ranges / 2; ++i) {
+            CRGB rgb = CHSV(
+                    start_hsv +  (i + loopCount) % num_hsvs,
+                255, 255);
+            setRange(i, rgb);
+            setRange((n_ranges / 2) + i, rgb);
+        }
+    }
+};
+
+HSVPattern RingsHSV_pattern(rings, n_rings, 230, 90);
+HSVPattern LinesHSV_pattern(lines, n_lines, 110, 100);
+void RingsHSV_Loop() {
+    RingsHSV_pattern.loop();
+    LinesHSV_pattern.loop();
+    speed_delay(g_speed, 20);
 }
