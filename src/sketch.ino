@@ -30,10 +30,12 @@
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
 
-#define PANTS_VERSION 2
+// 1 = first pants (furr)
+// 2 = second pants (rings)
+#define PANTS_VERSION 1
 
 #if PANTS_VERSION == 1
-#define NUM_LEDS 106
+#define NUM_LEDS 22 // 65
 #elif PANTS_VERSION == 2
 #define NUM_LEDS 192
 
@@ -145,9 +147,9 @@ enum Pattern {
     AllOff = 255
 };
 
-//unsigned char pattern = 0;
+unsigned char pattern = 0;
 bool pattern_auto_inc = true;
-unsigned char pattern = SpinningRings;
+//unsigned char pattern = SpinningRings;
 //bool pattern_auto_inc = false;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
@@ -195,7 +197,7 @@ void setup()
   delay(10);  // give pull-ups time raise the input voltage
 
 #if PANTS_VERSION == 1
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
 #elif PANTS_VERSION == 2
     FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
 #endif
@@ -218,8 +220,8 @@ void loop_brightness()
 
 #if PANTS_VERSION == 1
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
-//    brightness = 32; // TODO
-    if (abs(brightness - cur_brightness) > 5) {
+    brightness = 32; // TODO
+/*    if (abs(brightness - cur_brightness) > 5) {
         if (brightness < 7) {
             FastLED.setBrightness(0);
         } else if (brightness > 249) {
@@ -230,7 +232,7 @@ void loop_brightness()
         Serial.print("Brightness: ");
         Serial.println(brightness);
         cur_brightness = brightness;
-    }
+    }*/
 #elif PANTS_VERSION == 2
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
     if (brightness != cur_brightness) {
@@ -362,10 +364,139 @@ inline void speed_delay(int speed, int delay_time) {
    delay(map(speed, 0, 127, 0, delay_time * 7));
 }
 inline void update_g_speed() {
-    g_speed = (analogRead(SPEED_PIN) >> 3);
+    //g_speed = (analogRead(SPEED_PIN) >> 3);
+    g_speed = 64;
 }
 
-void loop()
+//CapacitiveSensor cap1(16, 10);
+//CapacitiveSensor cap2(15, 14);
+
+#define CAPSENSE_POINTS     32
+
+class CapSense {
+    public:
+    CapacitiveSensor sensor;
+    long samples[CAPSENSE_POINTS];
+    unsigned char idx;
+
+    // looking for rising edge
+
+
+    CapSense(int pin1, int pin2) : sensor(pin1, pin2) {
+        memset(samples, 0, sizeof(samples));
+        idx = 0;
+
+        pressed = false;
+        presses_cnt = 0;
+        last_ts = millis();
+
+        max = 0;
+        max_set_at = millis();
+        first_time = true;
+    }
+
+    bool pressed;
+    int presses_cnt;
+    long last_ts;
+
+    long max;
+    long max_set_at;
+    bool first_time;
+
+    void tick() {
+        long now = millis();
+        long fps = now - last_ts;
+        long val = sensor.capacitiveSensor(30) / fps;
+        last_ts = now;
+       
+        samples[idx] = val;
+        idx = (idx + 1) % CAPSENSE_POINTS;
+
+        // check for rising
+        long long_avg = sum(16);
+        long short_avg = sum(4);
+        
+       /* 
+        Serial.print(short_avg);
+        Serial.print("    ");
+        Serial.print(fps);
+        Serial.print("    ");
+*/
+
+        long delta = long_avg - (4 * short_avg);
+
+        
+
+        if (long_avg > max) {
+            max = long_avg;
+            max_set_at = millis();
+        }
+        else if (!pressed & (millis() > (max_set_at + 150))) {
+            if (first_time) {
+                max_set_at = millis();
+                first_time = false;
+            } else {
+                Serial.print("P");
+                pressed = true;
+            }
+        }
+        else {
+            Serial.print(pressed);
+            Serial.print("   ");
+            Serial.print(long_avg);
+            Serial.print("   ");
+            Serial.print(max);
+        }
+
+        LEDS.showColor(pressed ? CRGB::Red : CRGB::Black);
+    }
+
+    long sum(unsigned char n_samples) {
+        long t = 0;
+        unsigned char pos = idx;
+
+        for (unsigned char i = 0; i < n_samples; ++i) {
+            if (pos == 0) {
+                pos = CAPSENSE_POINTS - 1;
+            } else {
+                --pos;
+            }
+
+            t += samples[pos];
+        }
+
+        return t;
+    }
+};
+
+CapSense cap1(16, 10);
+CapSense cap2(15, 14);
+
+#include <CapacitiveSensor.h>
+void loop() {
+ //long c1 =  cap1.capacitiveSensor(30);
+ //long total2 =  cap2.capacitiveSensor(30);
+    cap1.tick();
+    //cap2.tick();
+    Serial.println();
+/*
+
+Serial.print(cap1.samples[cap1.idx]);
+Serial.print("       ");
+Serial.print(cap1.sum(16));
+Serial.print("       ");
+Serial.print(cap1.sum(32) / 2); //
+Serial.print("       ");
+Serial.print(cap2.samples[cap2.idx]);
+Serial.print("       ");
+Serial.print(cap2.sum(16));
+Serial.print("       ");
+Serial.println(cap2.sum(32) / 2); //
+*/
+    delay(10);    
+}
+
+void xloop()
 {
     loop_brightness();
     loop_rotenc1();
@@ -510,6 +641,7 @@ void loop()
         }
       break;
 
+#if PANTS_VERSION == 2
     case RingsHSV:
       maxLoops = 400;
       RingsHSV_Loop();
@@ -529,7 +661,7 @@ void loop()
       maxLoops = 400;
       SpinningRings_Loop(true);
       break;
-
+#endif
 
   }
 
@@ -1425,7 +1557,7 @@ void efx_blink(int h, int repeats) {
     }
 }
 
-
+#if PANTS_VERISON == 2
 class BasePattern {
 public:
     const led_range_t * ranges;
@@ -1565,3 +1697,5 @@ void SpinningRings_Loop(bool sym) {
     Rings_pattern.loop_spinning(sym);
     speed_delay(g_speed, 20);
 }
+
+#endif
