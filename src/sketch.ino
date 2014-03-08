@@ -145,9 +145,9 @@ enum Pattern {
     AllOff = 255
 };
 
-//unsigned char pattern = 0;
+unsigned char pattern = 0;
 bool pattern_auto_inc = true;
-unsigned char pattern = SpinningRings;
+//unsigned char pattern = SpinningRings;
 //bool pattern_auto_inc = false;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 
@@ -419,7 +419,7 @@ void loop()
     case RandomMarch:
         maxLoops = LED_COUNT * 2;
         RandomMartch_pat();
-        speed_delay(g_speed, 24);
+        speed_delay(g_speed, 20);
         break;
 
     case Flame:
@@ -448,7 +448,7 @@ void loop()
     case TraditionalColors:
       // repeating pattern of red, green, orange, blue, magenta that
       // slowly moves for 400 loopCounts
-      maxLoops = 400;
+      maxLoops = 600; // was 400
       traditionalColors();
       break;
 
@@ -1316,7 +1316,7 @@ void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
 
   if ((loopCount % 3) == 0) ++thishue;
 
-  speed_delay(g_speed, 30);
+  speed_delay(g_speed, 25);
 }
 
 void Flicker_pat() {
@@ -1327,7 +1327,7 @@ void Flicker_pat() {
     for(int i = 0 ; i < LED_COUNT; i++ ) {
       leds[i] = CHSV(160, 50, random_bright);
     }
-    speed_delay(g_speed, random_delay);
+    speed_delay(g_speed, random_delay / 2);
   }
 
 }
@@ -1404,7 +1404,7 @@ void Matrix_pat() {
     leds[i].g = ledsX[i-1][1];
     leds[i].b = ledsX[i-1][2];    
   }
-  speed_delay(g_speed, 50);
+  speed_delay(g_speed, 35);
 }
 
 
