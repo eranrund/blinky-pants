@@ -1,41 +1,6 @@
-/* LedStripXmas: A series of fun patterns for use with LED
- * strips set up as a Christmas lighting display.  You can see an
- * earlier version of this code running in this youtube video:
- * http://www.youtube.com/watch?v=VZRN0UrQSlc
- * To use this, you will need to plug the signal wire of an
- * Addressable RGB LED strip from Pololu into pin 12.
- *
- * You can optionally connect a switch between pin 3 and ground
- * to control if the Arduino automatically cycles through the
- * different patterns.  When no switch is present or the switch
- * is open, the patterns will cycle.
- *
- * You can also optionally connect a button between pin 2 and
- * ground that displays the next pattern in the series each time
- * it is pushed.  This example requires the PololuLEDStrip
- * library to be installed.
- *
- * NOTE: Timing is determined entirely by a counter incremented
- * by the main loop, and the execution time of the main loop is
- * dominated by the time it takes to write the LED colors array
- * to the LED strips.  Changing LED_COUNT will change the
- * timing, so if you like the default timing and you have fewer
- * than 509 LEDs, you might want to add an appropriate delay to
- * the main loop.  Timing is not done with the Arduino's system
- * timer because that does not work properly when this program
- * is running (the interrupts that maintain the system time must
- * be disabled while the LED strips are being updated or else
- * they will cause glitches on the LEDs).
- */
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
-
-#define PANTS_VERSION 2
-
-#if PANTS_VERSION == 1
-#define NUM_LEDS 106
-#elif PANTS_VERSION == 2
-#define NUM_LEDS 192
+#include <Encoder.h>
 
 typedef struct led_range_s {
     unsigned char start;
@@ -80,7 +45,6 @@ const led_range_t lines[] = {
 };
 #define n_lines (sizeof(lines)/sizeof(lines[0]))
 
-#endif
 
 
 #define DATA_PIN 9
@@ -89,17 +53,9 @@ const led_range_t lines[] = {
 #define BRIGHTNESS_PIN A1
 #define SPEED_PIN A0
 
-#define NEXT_PATTERN_BUTTON_PIN  0  // button between this pin and ground
-#define AUTOCYCLE_SWITCH_PIN  3  // switch between this pin and ground
-
-// Create a buffer for holding 509 colors.
-// This takes 1527 bytes and uses up most of the 2KB RAM on an Uno,
-// so we should be very sparing with additional RAM use and keep
-// an eye out for possible stack overflow problems.
-#define LED_COUNT NUM_LEDS
-
-CRGB leds[LED_COUNT];
-CRGB ledsX[LED_COUNT];
+#define MAX_LEDS 192
+CRGB leds[MAX_LEDS];
+CRGB ledsX[MAX_LEDS];
 
 #define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
@@ -107,7 +63,6 @@ CRGB ledsX[LED_COUNT];
 
 
 ////
-#include <Encoder.h>
 Encoder enc1(ENC1_PIN1,ENC1_PIN2);
 
 
@@ -119,29 +74,29 @@ unsigned int seed = 0;  // used to initialize random number generator
 
 // enumerate the possible patterns in the order they will cycle
 enum Pattern {
-    SimpleHSV,
-    SymSimpleHSV,
-    EMS,
-    Flicker,
-    RandomMarch,
-    Flame,
-    Matrix,
-    WarmWhiteShimmer ,
-    RandomColorWalk,
-    TraditionalColors,
-    ColorExplosion,
-    Gradient,
-    BrightTwinkle,
-    Collision,
+    SymSimpleHSV, // 0
+    EMS, // 1
+    Flicker, // 2
+    RandomMarch, // 3
+    Flame, // 4
+    Matrix, //5 
+    WarmWhiteShimmer , // 6
+    RandomColorWalk, // 7
+    TraditionalColors, // 8 
+    ColorExplosion, // 9
+    Gradient, // 10
+    BrightTwinkle, // 11
+    Collision, // 12
 
-#if PANTS_VERSION == 2
-    RingsHSV,
-    ShootRings,
-    SpinningRings,
-    SpinningRingsSym,
-#endif
+    //NUM_STATES_V1,
 
-    NUM_STATES,
+    RingsHSV, // 13
+    ShootRings, // 14
+    SpinningRings, // 15
+    SpinningRingsSym, //16
+
+    //NUM_STATES_V2,
+
     AllOff = 255
 };
 
@@ -158,6 +113,9 @@ unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
+int PANTS_VERSION = 1;
+int NUM_LEDS;
+int NUM_STATES;
 
 
 // initialization stuff
@@ -166,39 +124,35 @@ void setup()
     Serial.begin(9600);
     Serial.println("OK");
 
-    // ADC
-    // set prescale to 16
-    //sbi(ADCSRA,ADPS2);
-    //cbi(ADCSRA,ADPS1);
-    //cbi(ADCSRA,ADPS0);
+    for (int i = 0; i < 8; i++)
+    {
+        seed += analogRead(i);
+    }
+    seed += EEPROM.read(0);  // get part of the seed from EEPROM
+    randomSeed(seed);
+    EEPROM.write(0, random(256));
 
-  // initialize the random number generator with a seed obtained by
-  // summing the voltages on the disconnected analog inputs
-  for (int i = 0; i < 8; i++)
-  {
-    seed += analogRead(i);
-  }
-  seed += EEPROM.read(0);  // get part of the seed from EEPROM
-  randomSeed(seed);
-  // save a random number in EEPROM to be used for random seed
-  // generation the next time the program runs
-  EEPROM.write(0, random(256));
 
-  // optionally connect a switch between this pin and ground
-  // when the input is low, freeze the cycle at the current pattern
-  pinMode(AUTOCYCLE_SWITCH_PIN, INPUT_PULLUP);
+    // GET VERSION
+    // D10 - PULL UP = v2
+    //       DOWN TO GND = v1
+    pinMode(10, INPUT_PULLUP);
+    delay(30);
+    // TODO PANTS_VERSION = digitalRead(10) == 1 ? 2 : 1;
 
-  // optionally connect a button between this pin and ground
-  // when the input goes low, advance to the next pattern in cycle
-  pinMode(NEXT_PATTERN_BUTTON_PIN, INPUT_PULLUP);
+    if (PANTS_VERSION == 1)
+    {
+        NUM_LEDS = 106;
+        NUM_STATES = 13;
+        FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
+    }    
+    else if (PANTS_VERSION == 2)
+    {
+        NUM_LEDS = 192;
+        NUM_STATES = 16;
+        FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);        
+    }
 
-  delay(10);  // give pull-ups time raise the input voltage
-
-#if PANTS_VERSION == 1
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
-#elif PANTS_VERSION == 2
-    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
-#endif
     FastLED.setBrightness(128);
     pinMode(DATA_PIN, OUTPUT);
 
@@ -216,6 +170,8 @@ void loop_brightness()
 {
     unsigned char brightness;
 
+    // TODO
+    /*
 #if PANTS_VERSION == 1
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
 //    brightness = 32; // TODO
@@ -231,19 +187,20 @@ void loop_brightness()
         Serial.println(brightness);
         cur_brightness = brightness;
     }
-#elif PANTS_VERSION == 2
+#elif PANTS_VERSION == 2*/
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
     if (brightness != cur_brightness) {
         FastLED.setBrightness(brightness);
         cur_brightness = brightness;
     }
+    /*
 #else
     brightness = 32;
     if (brightness != cur_brightness) {
         FastLED.setBrightness(brightness);
         cur_brightness = brightness;
     }
-#endif
+#endif*/
 }
 
 void loop_rotenc1()
@@ -309,8 +266,11 @@ void loop_serial() {
             case 'a':
                 pattern_auto_inc = !pattern_auto_inc;
 
-                /* fallthrough */
+                /* fallthrough */                
             case '?':
+                Serial.print("Version: ");
+                Serial.println(PANTS_VERSION);
+
                 Serial.print("Pattern: ");
                 if (pattern_auto_inc) {
                    Serial.print("autoinc ");
@@ -353,6 +313,10 @@ void advance_pattern(bool dir) {
 void goto_pattern(unsigned char p) {
     pattern = p;
 
+    memset(leds, 0, sizeof(leds));
+    memset(ledsX, 0, sizeof(ledsX));
+    FastLED.show();
+
     Serial.print("P:");
     Serial.println(pattern);
 }
@@ -394,11 +358,11 @@ void loop()
   // routines just set the colors in the colors array
   switch (pattern)
   {
-    case SimpleHSV:
+    /*case SimpleHSV:
         maxLoops = 400;
         SimpleHSV_pat();
         speed_delay(g_speed, 6);
-        break;
+        break;*/
 
     case SymSimpleHSV:        
         maxLoops = 256;
@@ -407,28 +371,28 @@ void loop()
         break;
 
     case EMS:
-        maxLoops = LED_COUNT * 4;
+        maxLoops = NUM_LEDS * 4;
         EMS_pat();
         break;
 
     case Flicker:
-        maxLoops = LED_COUNT * 5;
+        maxLoops = NUM_LEDS * 5;
         Flicker_pat();
         break;
 
     case RandomMarch:
-        maxLoops = LED_COUNT * 2;
+        maxLoops = NUM_LEDS * 2;
         RandomMartch_pat();
         speed_delay(g_speed, 20);
         break;
 
     case Flame:
-        maxLoops = LED_COUNT;
+        maxLoops = NUM_LEDS;
         Flame_pat();
         break;
 
     case Matrix:
-        maxLoops = LED_COUNT * 3;
+        maxLoops = NUM_LEDS * 3;
         Matrix_pat();
         break;
 
@@ -548,26 +512,6 @@ void loop()
 }
 
 
-// This function detects if the optional next pattern button is pressed
-// (connecting the pin to ground) and advances to the next pattern
-// in the cycle if so.  It also debounces the button.
-void handleNextPatternButton()
-{
-  if (digitalRead(NEXT_PATTERN_BUTTON_PIN) == 0)
-  {
-    // if optional button is pressed
-    while (digitalRead(NEXT_PATTERN_BUTTON_PIN) == 0)
-    {
-      // wait for button to be released
-      while (digitalRead(NEXT_PATTERN_BUTTON_PIN) == 0);
-      delay(10);  // debounce the button
-    }
-    loopCount = 0;  // reset timer
-    pattern = ((unsigned char)(pattern+1))%NUM_STATES;  // advance to next pattern
-  }
-}
-
-
 // This function applies a random walk to val by increasing or
 // decreasing it by changeAmount or by leaving it unchanged.
 // val is a pointer to the byte to be randomly changed.
@@ -641,7 +585,7 @@ void warmWhiteShimmer(unsigned char dimOnly)
   const unsigned char maxBrightness = 120;  // cap on LED brighness
   const unsigned char changeAmount = 2;   // size of random walk step
 
-  for (int i = 0; i < LED_COUNT; i += 2)
+  for (int i = 0; i < NUM_LEDS; i += 2)
   {
     // randomly walk the brightness of every even LED
     randomWalk(&leds[i].red, maxBrightness, changeAmount, dimOnly ? 1 : 2);
@@ -651,7 +595,7 @@ void warmWhiteShimmer(unsigned char dimOnly)
     leds[i].blue = leds[i].red >> 3;  // blue = red/8
 
     // every odd LED gets set to a quarter the brighness of the preceding even LED
-    if (i + 1 < LED_COUNT)
+    if (i + 1 < NUM_LEDS)
     {
       leds[i+1] = CRGB(leds[i].red >> 2, leds[i].green >> 2, leds[i].blue >> 2);
     }
@@ -680,7 +624,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
   // pick a good starting point for our pattern so the entire strip
   // is lit well (if we pick wrong, the last four LEDs could be off)
   unsigned char start;
-  switch (LED_COUNT % 7)
+  switch (NUM_LEDS % 7)
   {
     case 0:
       start = 3;
@@ -695,7 +639,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
       start = 2;
   }
 
-  for (int i = start; i < LED_COUNT; i+=7)
+  for (int i = start; i < NUM_LEDS; i+=7)
   {
     if (initializeColors == 0)
     {
@@ -732,11 +676,11 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
     {
       leds[i-2] = CRGB(leds[i].red >> 3, leds[i].green >> 3, leds[i].blue >> 3);
     }
-    if (i + 1 < LED_COUNT)
+    if (i + 1 < NUM_LEDS)
     {
       leds[i+1] = leds[i-1];
     }
-    if (i + 2 < LED_COUNT)
+    if (i + 2 < NUM_LEDS)
     {
       leds[i+2] = leds[i-2];
     }
@@ -746,16 +690,16 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
 
 void SimpleHSV_pat()
 {
-    for (int i = 0; i < LED_COUNT; ++i) {
+    for (int i = 0; i < NUM_LEDS; ++i) {
         leds[i] = CHSV((i + loopCount) % 255, 255, 255);
     }
 }
 
 void SymSimpleHSV_pat()
 {
-    for (int i = 0; i < LED_COUNT/2; ++i) {
+    for (int i = 0; i < NUM_LEDS/2; ++i) {
         leds[i] = CHSV((i + loopCount) % 255, 255, 255);
-        leds[LED_COUNT - i - 1] = leds[i];
+        leds[NUM_LEDS - i - 1] = leds[i];
     }
 }
 
@@ -778,11 +722,11 @@ void traditionalColors()
     return;
   }
 
-  // if LED_COUNT is not an exact multiple of our repeating pattern size,
+  // if NUM_LEDS is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
   // that is an exact multiple of the pattern period (20) and is not smaller
   // than the actual LED count.
-  unsigned int extendedLEDCount = (((LED_COUNT-1)/20)+1)*20;
+  unsigned int extendedLEDCount = (((NUM_LEDS-1)/20)+1)*20;
 
   for (int i = 0; i < extendedLEDCount; i++)
   {
@@ -792,7 +736,7 @@ void traditionalColors()
     // transform i into a moving idx space that translates one step per
     // brightening cycle and wraps around
     unsigned int idx = (i + cycle)%extendedLEDCount;
-    if (idx < LED_COUNT)  // if our transformed index exists
+    if (idx < NUM_LEDS)  // if our transformed index exists
     {
       if (i % 4 == 0)
       {
@@ -914,7 +858,7 @@ void colorExplosion(unsigned char noNewBursts)
   colorExplosionColorAdjust(&leds[0].green, 9, (unsigned char*)0, &leds[1].green);
   colorExplosionColorAdjust(&leds[0].blue, 9, (unsigned char*)0, &leds[1].blue);
 
-  for (int i = 1; i < LED_COUNT - 1; i++)
+  for (int i = 1; i < NUM_LEDS - 1; i++)
   {
     // adjust the colors of second through second-to-last LEDs
     colorExplosionColorAdjust(&leds[i].red, 9, &leds[i-1].red, &leds[i+1].red);
@@ -923,9 +867,9 @@ void colorExplosion(unsigned char noNewBursts)
   }
 
   // adjust the colors of the last LED
-  colorExplosionColorAdjust(&leds[LED_COUNT-1].red, 9, &leds[LED_COUNT-2].red, (unsigned char*)0);
-  colorExplosionColorAdjust(&leds[LED_COUNT-1].green, 9, &leds[LED_COUNT-2].green, (unsigned char*)0);
-  colorExplosionColorAdjust(&leds[LED_COUNT-1].blue, 9, &leds[LED_COUNT-2].blue, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[NUM_LEDS-1].red, 9, &leds[NUM_LEDS-2].red, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[NUM_LEDS-1].green, 9, &leds[NUM_LEDS-2].green, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[NUM_LEDS-1].blue, 9, &leds[NUM_LEDS-2].blue, (unsigned char*)0);
 
   if (!noNewBursts)
   {
@@ -933,7 +877,7 @@ void colorExplosion(unsigned char noNewBursts)
     // to light up
     for (int i = 0; i < 1; i++)
     {
-      int j = random(LED_COUNT);  // randomly pick an LED
+      int j = random(NUM_LEDS);  // randomly pick an LED
 
       switch(random(7))  // randomly pick a color
       {
@@ -992,20 +936,20 @@ void gradient()
   // populate colors array with full-brightness gradient colors
   // (since the array indices are a function of loopCount, the gradient
   // colors scroll over time)
-  while (j < LED_COUNT)
+  while (j < NUM_LEDS)
   {
     // transition from red to green over 8 LEDs
     for (int i = 0; i < 8; i++)
     {
-      if (j >= LED_COUNT){ break; }
-      leds[(loopCount/2 + j + LED_COUNT)%LED_COUNT] = CRGB(160 - 20*i, 20*i, (160 - 20*i)*20*i/160);
+      if (j >= NUM_LEDS){ break; }
+      leds[(loopCount/2 + j + NUM_LEDS)%NUM_LEDS] = CRGB(160 - 20*i, 20*i, (160 - 20*i)*20*i/160);
       j++;
     }
     // transition from green to red over 8 LEDs
     for (int i = 0; i < 8; i++)
     {
-      if (j >= LED_COUNT){ break; }
-      leds[(loopCount/2 + j + LED_COUNT)%LED_COUNT] = CRGB(20*i, 160 - 20*i, (160 - 20*i)*20*i/160);
+      if (j >= NUM_LEDS){ break; }
+      leds[(loopCount/2 + j + NUM_LEDS)%NUM_LEDS] = CRGB(20*i, 160 - 20*i, (160 - 20*i)*20*i/160);
       j++;
     }
   }
@@ -1017,11 +961,11 @@ void gradient()
   const unsigned char fullBrightLEDs = 5;  // number of LEDs to leave fully bright
   const unsigned char cyclePeriod = 14 + fullDarkLEDs + fullBrightLEDs;
 
-  // if LED_COUNT is not an exact multiple of our repeating pattern size,
+  // if NUM_LEDS is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
   // that is an exact multiple of the pattern period (cyclePeriod) and is not
   // smaller than the actual LED count.
-  unsigned int extendedLEDCount = (((LED_COUNT-1)/cyclePeriod)+1)*cyclePeriod;
+  unsigned int extendedLEDCount = (((NUM_LEDS-1)/cyclePeriod)+1)*cyclePeriod;
 
   j = 0;
   while (j < extendedLEDCount)
@@ -1033,7 +977,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= LED_COUNT){ continue; }
+      if (idx >= NUM_LEDS){ continue; }
 
       leds[idx].red >>= i;
       leds[idx].green >>= i;
@@ -1045,7 +989,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= LED_COUNT){ continue; }
+      if (idx >= NUM_LEDS){ continue; }
 
       leds[idx].red = 0;
       leds[idx].green = 0;
@@ -1057,7 +1001,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= LED_COUNT){ continue; }
+      if (idx >= NUM_LEDS){ continue; }
 
       leds[idx].red >>= (7 - i);
       leds[idx].green >>= (7 - i);
@@ -1095,7 +1039,7 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
   // * It will automatically grow through 3, 7, 15, 31, 63, 127, 255.
   // * When it reaches 255, it gets set to 254, which starts the fade
   //   (the fade process always keeps the color even).
-  for (int i = 0; i < LED_COUNT; i++)
+  for (int i = 0; i < NUM_LEDS; i++)
   {
     brightTwinkleColorAdjust(&leds[i].red);
     brightTwinkleColorAdjust(&leds[i].green);
@@ -1108,7 +1052,7 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
     // to light up
     for (int i = 0; i < 4; i++)
     {
-      int j = random(LED_COUNT);
+      int j = random(NUM_LEDS);
       if (leds[j].red == 0 && leds[j].green == 0 && leds[j].blue == 0)
       {
         // if the LED we picked is not already lit, pick a random
@@ -1189,9 +1133,9 @@ unsigned char collision()
     // stream is led by two full-white LEDs
     leds[1] = leds[2] = CRGB(255, 255, 255);
     // make other side of the strip a mirror image of this side
-    leds[LED_COUNT - 1] = leds[0];
-    leds[LED_COUNT - 2] = leds[1];
-    leds[LED_COUNT - 3] = leds[2];
+    leds[NUM_LEDS - 1] = leds[0];
+    leds[NUM_LEDS - 2] = leds[1];
+    leds[NUM_LEDS - 3] = leds[2];
 
     state++;  // advance to next state
     count = 8;  // pick the first value of count that results in a startIdx of 1 (see below)
@@ -1204,7 +1148,7 @@ unsigned char collision()
     unsigned int startIdx = count*(count + 1) >> 6;
     unsigned int stopIdx = startIdx + (count >> 5);
     count++;
-    if (startIdx < (LED_COUNT + 1)/2)
+    if (startIdx < (NUM_LEDS + 1)/2)
     {
       // if streams have not crossed the half-way point, keep them growing
       for (int i = 0; i < startIdx-1; i++)
@@ -1213,14 +1157,14 @@ unsigned char collision()
         fade(&leds[i].red, 5);
         fade(&leds[i].green, 5);
         fade(&leds[i].blue, 5);
-        fade(&leds[LED_COUNT - i - 1].red, 5);
-        fade(&leds[LED_COUNT - i - 1].green, 5);
-        fade(&leds[LED_COUNT - i - 1].blue, 5);
+        fade(&leds[NUM_LEDS - i - 1].red, 5);
+        fade(&leds[NUM_LEDS - i - 1].green, 5);
+        fade(&leds[NUM_LEDS - i - 1].blue, 5);
       }
       for (int i = startIdx; i <= stopIdx; i++)
       {
         // generate new parts of the stream
-        if (i >= (LED_COUNT + 1) / 2)
+        if (i >= (NUM_LEDS + 1) / 2)
         {
           // anything past the halfway point is white
           leds[i] = CRGB(255, 255, 255);
@@ -1230,19 +1174,19 @@ unsigned char collision()
           leds[i] = leds[i-1];
         }
         // make other side of the strip a mirror image of this side
-        leds[LED_COUNT - i - 1] = leds[i];
+        leds[NUM_LEDS - i - 1] = leds[i];
       }
       // stream is led by two full-white LEDs
       leds[stopIdx + 1] = leds[stopIdx + 2] = CRGB(255, 255, 255);
       // make other side of the strip a mirror image of this side
-      leds[LED_COUNT - stopIdx - 2] = leds[stopIdx + 1];
-      leds[LED_COUNT - stopIdx - 3] = leds[stopIdx + 2];
+      leds[NUM_LEDS - stopIdx - 2] = leds[stopIdx + 1];
+      leds[NUM_LEDS - stopIdx - 3] = leds[stopIdx + 2];
     }
     else
     {
       // streams have crossed the half-way point of the strip;
       // flash the entire strip full-brightness white (ignores maxBrightness limits)
-      for (int i = 0; i < LED_COUNT; i++)
+      for (int i = 0; i < NUM_LEDS; i++)
       {
         leds[i] = CRGB(255, 255, 255);
       }
@@ -1264,7 +1208,7 @@ unsigned char collision()
     }
 
     // fade the LEDs at different rates based on the state
-    for (int i = 0; i < LED_COUNT; i++)
+    for (int i = 0; i < NUM_LEDS; i++)
     {
       switch (state/3)
       {
@@ -1299,16 +1243,16 @@ unsigned char collision()
   return 0;
 }
 
-#define TOP_INDEX (LED_COUNT/2)
+#define TOP_INDEX (NUM_LEDS/2)
 int antipodal_index(int i) {
   int iN = i + TOP_INDEX;
-  if (i >= TOP_INDEX) {iN = ( i + TOP_INDEX ) % LED_COUNT; }
+  if (i >= TOP_INDEX) {iN = ( i + TOP_INDEX ) % NUM_LEDS; }
   return iN;
 }
 
 int thishue = 0;
 void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
-  int loopCountR = (loopCount % LED_COUNT);
+  int loopCountR = (loopCount % NUM_LEDS);
   int loopCountB = antipodal_index(loopCountR);
   int thathue = (thishue + 160) % 255;
   leds[loopCountR] = CHSV(thishue, 255, 255);
@@ -1324,7 +1268,7 @@ void Flicker_pat() {
   int random_delay = random(10,100);
   int random_bool = random(0,random_bright);
   if (random_bool < 10) {
-    for(int i = 0 ; i < LED_COUNT; i++ ) {
+    for(int i = 0 ; i < NUM_LEDS; i++ ) {
       leds[i] = CHSV(160, 50, random_bright);
     }
     speed_delay(g_speed, random_delay / 2);
@@ -1335,7 +1279,7 @@ void Flicker_pat() {
 int adjacent_ccw(int i) {
   int r;
   if (i > 0) {r = i - 1;}
-  else {r = LED_COUNT - 1;}
+  else {r = NUM_LEDS - 1;}
   return r;
 }
 
@@ -1345,15 +1289,15 @@ void RandomMartch_pat()
   int iCCW;
   copy_led_array();
   leds[0] = CHSV(random(0,255), 255, 255);
-  for(int idex = 1; idex < LED_COUNT ; idex++ ) {
+  for(int idex = 1; idex < NUM_LEDS ; idex++ ) {
     iCCW = adjacent_ccw(idex);
     leds[idex].r = ledsX[iCCW][0];
     leds[idex].g = ledsX[iCCW][1];
     leds[idex].b = ledsX[iCCW][2];
   }
-  if (loopCount > LED_COUNT) {
-    for (int i = 0; i < loopCount - LED_COUNT; ++i) {
-        if (i >= LED_COUNT) break;
+  if (loopCount > NUM_LEDS) {
+    for (int i = 0; i < loopCount - NUM_LEDS; ++i) {
+        if (i >= NUM_LEDS) break;
         leds[i] = CRGB(0,0,0);
     }
   }
@@ -1361,27 +1305,27 @@ void RandomMartch_pat()
   LEDS.show();  
 }
 
-#define EVENODD (LED_COUNT % 2)
+#define EVENODD (NUM_LEDS % 2)
 int horizontal_index(int i) {
   //-ONLY WORKS WITH INDEX < TOPINDEX
   if (i == 0) {return 0;}
   if (i == TOP_INDEX && EVENODD == 1) {return TOP_INDEX + 1;}
   if (i == TOP_INDEX && EVENODD == 0) {return TOP_INDEX;}
-  return LED_COUNT - i;  
+  return NUM_LEDS - i;  
 }
 
 void Flame_pat() {
   int ghue = (0 + 80) % 255;
   int bhue = (0 + 160) % 255;
-  int N3  = int(LED_COUNT/3);
-  int N6  = int(LED_COUNT/6);  
-  int N12 = int(LED_COUNT/12);  
+  int N3  = int(NUM_LEDS/3);
+  int N6  = int(NUM_LEDS/6);  
+  int N12 = int(NUM_LEDS/12);  
   int idex = loopCount;
   int thissat = 200;
   for(int i = 0; i < N3; i++ ) {
-    int j0 = (idex + i + LED_COUNT - N12) % LED_COUNT;
-    int j1 = (j0+N3) % LED_COUNT;
-    int j2 = (j1+N3) % LED_COUNT;    
+    int j0 = (idex + i + NUM_LEDS - N12) % NUM_LEDS;
+    int j1 = (j0+N3) % NUM_LEDS;
+    int j2 = (j1+N3) % NUM_LEDS;    
     leds[j0] = CHSV(0 , thissat, 255);
     leds[j1] = CHSV(ghue, thissat, 255);
     leds[j2] = CHSV(bhue, thissat, 255);    
@@ -1399,7 +1343,7 @@ void Matrix_pat() {
   }
   else {leds[0] = CHSV(thishue, thissat, 0);}
   copy_led_array();
-    for(int i = 1; i < LED_COUNT; i++ ) {
+    for(int i = 1; i < NUM_LEDS; i++ ) {
     leds[i].r = ledsX[i-1][0];
     leds[i].g = ledsX[i-1][1];
     leds[i].b = ledsX[i-1][2];    
@@ -1411,13 +1355,13 @@ void Matrix_pat() {
 void efx_blink(int h, int repeats) {
     for (int cnt = 0; cnt < repeats; ++cnt) {
         for (int v = 50; v < 255; v += 3) {
-            for (int i = 0; i < LED_COUNT; ++i) {
+            for (int i = 0; i < NUM_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
             LEDS.show();
         }
         for (int v = 255; v > 50; v -= 3) {
-            for (int i = 0; i < LED_COUNT; ++i) {
+            for (int i = 0; i < NUM_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
             LEDS.show();
