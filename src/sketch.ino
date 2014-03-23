@@ -50,6 +50,7 @@ const led_range_t lines[] = {
 #define DATA_PIN 9
 #define ENC1_PIN1 2
 #define ENC1_PIN2 3
+#define ENC1_SW_PIN 4
 #define BRIGHTNESS_PIN A1
 #define SPEED_PIN A0
 
@@ -64,6 +65,8 @@ CRGB ledsX[MAX_LEDS];
 
 ////
 Encoder enc1(ENC1_PIN1,ENC1_PIN2);
+bool enc1_btn = false;
+unsigned long enc1_btn_pressed_at = 0;
 
 
 // system timer, incremented by one every time through the main loop
@@ -100,11 +103,19 @@ enum Pattern {
     AllOff = 255
 };
 
+typedef enum {
+    MicOff,
+    MicP1,
+    MicP2,
+    MicStates,
+} MicMode;
+
 unsigned char pattern = 0;
 bool pattern_auto_inc = true;
 //unsigned char pattern = SpinningRings;
 //bool pattern_auto_inc = false;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
+unsigned char mic_mode = MicOff;
 
 #ifndef cbi
 #define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
@@ -113,7 +124,7 @@ unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 #define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 #endif
 
-int PANTS_VERSION = 1;
+int PANTS_VERSION = 2;
 int NUM_LEDS;
 int NUM_STATES;
 
@@ -138,7 +149,9 @@ void setup()
     //       DOWN TO GND = v1
     pinMode(10, INPUT_PULLUP);
     delay(30);
-    // TODO PANTS_VERSION = digitalRead(10) == 1 ? 2 : 1;
+    PANTS_VERSION = digitalRead(10) == 1 ? 2 : 1;
+
+    pinMode(ENC1_SW_PIN, INPUT_PULLUP);
 
     if (PANTS_VERSION == 1)
     {
@@ -203,57 +216,116 @@ void loop_brightness()
 #endif*/
 }
 
+unsigned char enc_pattern_state = 0;
+void enc1_moved_with_btn(bool dir)
+{    
+
+    if (dir) {
+        // move to next, if possible
+        if (enc_pattern_state < NUM_STATES) {
+            enc_pattern_state++;
+        } else {
+            copy_led_array();
+            efx_blink(0, 2);
+            uncopy_led_array();
+        }
+    } else {
+        // move back if possible
+        if (enc_pattern_state > 0) {
+            enc_pattern_state--;
+        } else {
+            copy_led_array();
+            efx_blink(0, 2);
+            uncopy_led_array();
+        }
+    }
+
+    if (enc_pattern_state == 0) {
+        goto_pattern(0);
+        pattern_auto_inc = true;
+    } else {
+        goto_pattern(enc_pattern_state - 1);
+        pattern_auto_inc = false;
+    }
+
+    Serial.print("Rot enc_pattern_state: ");
+    Serial.println(enc_pattern_state);
+}
+
+void enc1_moved_without_btn(bool dir)
+{
+    pattern_auto_inc = true;
+    advance_pattern(dir);
+}
+
 void loop_rotenc1()
 {
     static long enc_pos = 0;
     static unsigned long last_change = 0;
-    static unsigned char state = 0;
     long new_pos;
     unsigned long now;
-    unsigned char old_state;
+    static bool waiting_for_long_press = false;
+
+    int sw = digitalRead(ENC1_SW_PIN);
+    while (sw != digitalRead(ENC1_SW_PIN)) {
+        sw = digitalRead(ENC1_SW_PIN);
+        delay(1);
+        Serial.println("%");
+    }
+    if ((sw == 1) & enc1_btn) {
+        // button released
+        enc1_btn = false;
+        waiting_for_long_press = false;
+        Serial.println("ENC1 BTN -");
+        delay(350);
+        enc_pos = enc1.read();
+
+
+        return;
+    } else if ((sw == 0) && !enc1_btn) {
+        // button pressed
+        enc1_btn = true;
+        waiting_for_long_press = true;
+        enc1_btn_pressed_at = millis();
+        Serial.println("ENC1 BTN +");
+    }
 
     new_pos = enc1.read();
-
     if (enc_pos == new_pos) {
+        if (waiting_for_long_press && enc1_btn && ( (millis() - enc1_btn_pressed_at) > 3000)) {
+            if (mic_mode == MicOff) {
+                efx_blink(60, 2);
+                mic_mode = MicP1;
+            } else {
+                efx_blink(90, 2);
+                mic_mode = MicOff;
+            }
+        }
         return;
     }
+    waiting_for_long_press = false; // rotenc moved so no longpress
 
     Serial.println(enc_pos);
     now = millis();
     if ((now - last_change) > 300) {
         last_change = now;
-        old_state = state;
 
-        if (new_pos > enc_pos) {
-            // move to next, if possible
-            if (state < NUM_STATES) {
-                state++;
-            } else {
-                copy_led_array();
-                efx_blink(0, 2);
-                uncopy_led_array();
-            }
+        if (enc1_btn) {             
+            enc1_moved_with_btn(new_pos > enc_pos);
         } else {
-            // move back if possible
-            if (state > 0) {
-                state--;
+            if (mic_mode == MicOff) {
+                enc1_moved_without_btn(new_pos > enc_pos);
             } else {
-                copy_led_array();
-                efx_blink(0, 2);
-                uncopy_led_array();
+                int dir = new_pos > enc_pos ? 1 : -1;
+                mic_mode += dir;
+                if (mic_mode == 0) {
+                    mic_mode = MicStates - 1;
+                } else if (mic_mode == MicStates) {
+                    mic_mode = 1;
+                }                
             }
         }
 
-        if (state == 0) {
-            goto_pattern(0);
-            pattern_auto_inc = true;
-        } else {
-            goto_pattern(state - 1);
-            pattern_auto_inc = false;
-        }
-
-        Serial.print("Rot state: ");
-        Serial.println(state);
     }
     enc_pos = new_pos;
 }
@@ -334,9 +406,18 @@ void loop()
     loop_brightness();
     loop_rotenc1();
     loop_serial();
-
-    // Get speed
     update_g_speed();    
+
+    // mic mode hack
+    switch (mic_mode) {
+        case MicP1:
+            micbar1loop();
+            return;
+
+        case MicP2:
+            micbar2loop();
+            return;
+    }
 
     // Clear leds on start of loop
     if (loopCount == 0) {
@@ -1508,4 +1589,168 @@ void ShootRings_Loop() {
 void SpinningRings_Loop(bool sym) {
     Rings_pattern.loop_spinning(sym);
     speed_delay(g_speed, 20);
+}
+
+
+class MICBarPattern : public BasePattern {
+public:
+    MICBarPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+    }
+
+    void loop() {
+        int x = analogRead(3) >> 3;
+        static int last_x = 0;
+        static unsigned char h = 0;
+        
+        if (x >= last_x) {
+            last_x = x;
+        } else {
+//            last_x--;
+              last_x = (last_x*7 + x) / 8;
+        }
+        //Serial.println(last_x);
+//        delay(5);
+
+        int max_rings = n_ranges / 2;
+        int scaler = (g_speed >> 2);
+
+        int lit_rings = map(last_x * scaler, 0, 127, 0, max_rings);
+       
+//        Serial.print(last_x);        Serial.print("            ");Serial.print(lit_rings);Serial.print("       ");Serial.println(scaler);
+        memset(leds, 0, sizeof(leds));
+        for (int i = 0; i < max_rings; ++i) {
+            if (i < lit_rings) {
+                CRGB c = CHSV(
+                    //map(last_x * scaler, 0, 512, 96, 0),
+                    (unsigned char) (map(i, 0, max_rings, 90, -20) + random(20)),
+                    255,
+                    255
+                );
+                setRange(n_ranges - i - 1, c);
+                setRange(n_ranges - i - 1 - max_rings, c);
+            }
+        }
+        FastLED.show();
+
+    }
+};
+
+
+#define MIC_PIN   A3  // Microphone is attached to this analog pin
+#define DC_OFFSET  0  // DC offset in mic signal - if unusure, leave 0
+#define NOISE     20  // Noise/hum/interference in mic signal
+#define SAMPLES   40  // Length of buffer for dynamic level adjustment
+//#define TOP       (NUM_LEDS - 2) // Allow dot to go slightly off scale
+#define PEAK_FALL 5  // Rate of peak falling dot
+
+class MICVUPattern : public BasePattern {
+public:
+    byte peak, dotCount, volCount;
+    int vol[SAMPLES];
+    int lvl, minLvlAvg, maxLvlAvg;
+    int TOP;
+
+
+    MICVUPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges)
+    {
+        peak      = 0;      // Used for falling dot
+        dotCount  = 0;      // Frame counter for delaying dot-falling speed
+        volCount  = 0;      // Frame counter for storing past volume data
+    
+        memset(vol, 0, sizeof(vol));
+        lvl       = 20;      // Current "dampened" audio level
+        minLvlAvg = 0;      // For dynamic adjustment of graph low & high
+        maxLvlAvg = 512;
+
+        TOP = n_ranges / 2;
+    }
+
+    void loop() {
+        uint8_t  i;
+        uint16_t minLvl, maxLvl;
+        int      n, height;
+
+        memset(leds, 0, sizeof(leds));
+
+        n   = analogRead(A3);                  // Raw reading from mic
+//        n   = abs(n - 512 - DC_OFFSET); // Center on zero
+        n   = (n <= NOISE) ? 0 : (n - NOISE);             // Remove noise/hum
+        lvl = ((lvl * 7) + n) >> 3;    // "Dampened" reading (else looks twitchy)
+
+        // Calculate bar height based on dynamic min/max levels (fixed point):
+        height = TOP * (lvl - minLvlAvg) / (long)(maxLvlAvg - minLvlAvg);
+
+        if(height < 0L)       height = 0;      // Clip output
+        else if(height > TOP) height = TOP;
+        if(height > peak)     peak   = height; // Keep 'peak' dot at top
+
+
+        // Color pixels based on rainbow gradient
+        for(i=0; i<TOP; i++) {
+            if(i >= height) {
+//                setRange(i, CRGB::Black);
+            }
+            else Wheel(i, map(i,0,TOP,30,150));   
+        }
+
+        // Draw peak dot 
+        if(peak > 0 && peak <= TOP-1) Wheel(peak, map(peak,0,TOP,30,150));
+
+        FastLED.show(); // Update strip
+
+        // Every few frames, make the peak pixel drop by 1:
+        if(++dotCount >= PEAK_FALL) { //fall rate
+         
+          if(peak > 0) peak--;
+          dotCount = 0;
+        }
+
+
+        vol[volCount] = n;                      // Save sample for dynamic leveling
+        if(++volCount >= SAMPLES) volCount = 0; // Advance/rollover sample counter
+
+        // Get volume range of prior frames
+        minLvl = maxLvl = vol[0];
+        for(i=1; i<SAMPLES; i++) {
+        if(vol[i] < minLvl)      minLvl = vol[i];
+        else if(vol[i] > maxLvl) maxLvl = vol[i];
+        }
+        // minLvl and maxLvl indicate the volume range over prior frames, used
+        // for vertically scaling the output graph (so it looks interesting
+        // regardless of volume level).  If they're too close together though
+        // (e.g. at very low volume levels) the graph becomes super coarse
+        // and 'jumpy'...so keep some minimum distance between them (this
+        // also lets the graph go to zero when no sound is playing):
+        if((maxLvl - minLvl) < TOP) maxLvl = minLvl + TOP;
+        minLvlAvg = (minLvlAvg * 63 + minLvl) >> 6; // Dampen min/max levels
+        maxLvlAvg = (maxLvlAvg * 63 + maxLvl) >> 6; // (fake rolling average)
+    }
+
+    // Input a value 0 to 255 to get a color value.
+    // The colors are a transition r - g - b - back to r.
+    void Wheel(int i, byte WheelPos) {
+        CRGB c;
+      if(WheelPos < 85) {
+       c = CRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
+      } else if(WheelPos < 170) {
+       WheelPos -= 85;
+        c = CRGB(255 - WheelPos * 3, 0, WheelPos * 3);
+      } else {
+       WheelPos -= 170;
+      c  = CRGB(0, WheelPos * 3, 255 - WheelPos * 3);
+      }
+
+//      setRange(TOP - i - 1 , c);
+      setRange(n_ranges - i - 1, c);
+      setRange(TOP - i - 1, c);
+    }
+
+};
+MICBarPattern micBar1(rings, n_rings);
+MICVUPattern micBar2(rings, n_rings);
+void micbar1loop() {
+    micBar1.loop();
+}
+void micbar2loop() {
+    micBar2.loop();
 }
