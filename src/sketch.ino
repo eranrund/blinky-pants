@@ -162,7 +162,7 @@ void setup()
     else if (PANTS_VERSION == 2)
     {
         NUM_LEDS = 192;
-        NUM_STATES = 16;
+        NUM_STATES = 17;
         FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);        
     }
 
@@ -385,9 +385,16 @@ void advance_pattern(bool dir) {
 void goto_pattern(unsigned char p) {
     pattern = p;
 
+    for (int i = 0; i < 8; i++)
+    {
+        seed += analogRead(i);
+    }
+    randomSeed(seed);
+
     memset(leds, 0, sizeof(leds));
     memset(ledsX, 0, sizeof(ledsX));
     FastLED.show();
+    loopCount = 0;
 
     Serial.print("P:");
     Serial.println(pattern);
@@ -1529,7 +1536,13 @@ public:
 
 class RingsPatterns : public BasePattern {
 public:
+    bool speedup;
+    int speed_cnt;
+
    RingsPatterns(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+    speedup = false;
+    speed_cnt = 0;
+
     }
 
     void loop_shoot() {
@@ -1566,6 +1579,30 @@ public:
             }
         }
     }
+
+    void delay() {
+        int d;
+        if (loopCount == 0) {
+            speedup = random(100) > 50;
+            Serial.println(speedup);
+        //    speedup = true;
+            speed_cnt = 0;
+        }
+
+        if (speedup) {
+            speed_cnt += 1;
+            if (speed_cnt < 160) {
+                d = 20 - (speed_cnt / 16);
+            } else {
+                d = 20 - (speed_cnt / 20);
+            }
+            if (0 > d) d = 0;
+        } else {
+            d = 20;
+        }
+        
+        speed_delay(g_speed, d);
+    }
 };
 
 
@@ -1583,12 +1620,12 @@ void RingsHSV_Loop() {
 
 void ShootRings_Loop() {
     Rings_pattern.loop_shoot();
-    speed_delay(g_speed, 20);
+    Rings_pattern.delay();
 }
 
 void SpinningRings_Loop(bool sym) {
     Rings_pattern.loop_spinning(sym);
-    speed_delay(g_speed, 20);
+    Rings_pattern.delay();
 }
 
 
