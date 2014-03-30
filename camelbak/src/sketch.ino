@@ -101,7 +101,7 @@ public:
 
     void loop3() {        
         static const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
-        static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
+       static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
         static unsigned char next_h = 0;
 
         unsigned char next_v = gen1.next();
@@ -126,8 +126,7 @@ public:
         leds2[0] = leds[0];
 
         inc();
-//        delay(74);
-        delay(sin( (step % 40) * 2*PI / 40 ) + 60);
+        delay(20 * sin( (step % 150) * 2*PI / 150 ) + 60);
     }
 
     void inc() {
