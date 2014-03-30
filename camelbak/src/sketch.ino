@@ -25,6 +25,25 @@ void setup()
     FastLED.show();
 }
 
+class StepGenerator {
+public:
+    const unsigned char * pattern;
+    unsigned char num_steps;
+    unsigned char step;
+
+    StepGenerator(const unsigned char * pattern, unsigned char num_steps) {
+        this->pattern = pattern;
+        this->num_steps = num_steps;
+        this->step = 0;
+    }
+
+    unsigned char next() {
+        unsigned char ret = pattern[step];
+        step = (step + 1) % num_steps;
+        return ret;
+    }
+};
+
 class FaderPattern1 {
 public:
     unsigned long step;
@@ -80,19 +99,17 @@ public:
         delay(4);
     }
 
-    void loop3() {
-        const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
-        const unsigned char num_pattern_steps = sizeof(pattern)/sizeof(pattern[0]);
-        static unsigned char pattern_step = 0;
+    void loop3() {        
+        static const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
+        static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
         static unsigned char next_h = 0;
 
-        unsigned char next_v = pattern[pattern_step];
-        pattern_step = (pattern_step + 1) % num_pattern_steps;
+        unsigned char next_v = gen1.next();
         if (next_v == 255) {
             next_v -= random(35);
         }
 
-        if (pattern_step == 0) {
+        if (gen1.step == 0) {
             next_h = random(255);
         }
 
