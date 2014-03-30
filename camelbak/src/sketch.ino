@@ -44,17 +44,54 @@ public:
     }
 };
 
-class FaderPattern1 {
+class BasePattern {
 public:
-    unsigned long step;
+    unsigned long step, max_steps;
+
+    BasePattern(unsigned long max_steps) {
+        this->step = 0;
+        this->max_steps = max_steps;
+    }
+
+    void loop() {
+        step++;
+        if (step == max_steps) {
+            step = 0;
+        }
+    }
+
+    bool next() {
+        return step == (max_steps - 1);
+    }
+
+    // This function fades val by decreasing it by an amount proportional
+    // to its current value.  The fadeTime argument determines the
+    // how quickly the value fades.  The new value of val will be:
+    //   val = val - val*2^(-fadeTime)
+    // So a smaller fadeTime value leads to a quicker fade.
+    // If val is greater than zero, val will always be decreased by
+    // at least 1.
+    // val is a pointer to the byte to be faded.
+    void fade(unsigned char *val, unsigned char fadeTime) {
+        if (*val != 0) {
+            unsigned char subAmt = *val >> fadeTime;  // val * 2^-fadeTime
+            if (subAmt < 1) {
+                subAmt = 1;  // make sure we always decrease by at least 1
+            }
+            *val -= subAmt;  // decrease value of byte pointed to by val
+        }
+    }
+};
+
+class FaderPattern1 : public BasePattern {
+public:
     int v;
     bool dir;
 
     int balance;
     bool balance_dir;
 
-    FaderPattern1() {
-        step = 0;
+    FaderPattern1() : BasePattern(0xffffffff) {
         v = 0;
         dir = true;
         balance = 0;
@@ -101,7 +138,7 @@ public:
 
     void loop3() {        
         static const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
-       static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
+        static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
         static unsigned char next_h = 0;
 
         unsigned char next_v = gen1.next();
@@ -130,8 +167,8 @@ public:
     }
 
     void inc() {
+        BasePattern::loop();
         FastLED.show();
-        ++step;
 
         v += dir ? 1 : -1;
         if ((v == 100) || (v == 0)) {
@@ -146,41 +183,6 @@ public:
     }
 };
 FaderPattern1 FaderPattern1;
-
-class BasePattern {
-    public:
-        unsigned long loopCount, maxLoops;
-
-        BasePattern(unsigned long maxLoops) {
-            this->loopCount = 0;
-            this->maxLoops = maxLoops;
-        }
-
-        void loop() {
-            loopCount++;
-            if (loopCount == maxLoops) {
-                loopCount = 0;
-            }
-        }
-
-        // This function fades val by decreasing it by an amount proportional
-        // to its current value.  The fadeTime argument determines the
-        // how quickly the value fades.  The new value of val will be:
-        //   val = val - val*2^(-fadeTime)
-        // So a smaller fadeTime value leads to a quicker fade.
-        // If val is greater than zero, val will always be decreased by
-        // at least 1.
-        // val is a pointer to the byte to be faded.
-        void fade(unsigned char *val, unsigned char fadeTime) {
-            if (*val != 0) {
-                unsigned char subAmt = *val >> fadeTime;  // val * 2^-fadeTime
-                if (subAmt < 1) {
-                    subAmt = 1;  // make sure we always decrease by at least 1
-                }
-                *val -= subAmt;  // decrease value of byte pointed to by val
-            }
-        }
-};
 
 class CollisionPattern : public BasePattern {
 public:
@@ -197,7 +199,7 @@ public:
 
         if (!collision())
         {
-            maxLoops = loopCount + 2;
+            max_steps = step + 2;
         }
         FastLED.show();
         delay(10);
@@ -207,7 +209,7 @@ public:
     {
         const unsigned char maxBrightness = 210;  // max brightness for the colors
         const unsigned char numCollisions = 5;  // # of collisions before pattern ends
-          if (loopCount == 0)
+          if (step == 0)
           {
             state = 0;
           }
@@ -348,8 +350,37 @@ public:
 };
 CollisionPattern CollisionPattern;
 
+
 void loop() {
-//    FaderPattern1.loop();
-    FaderPattern1.loop3();
-//      CollisionPattern.loop();
+    static unsigned long last_switch_at = 0;
+    static unsigned char pattern = 1;
+    unsigned long pattern_time = 0;
+    
+    switch (pattern) {
+        case 0:
+            FaderPattern1.loop1();
+            pattern_time = 5000;
+            break;
+
+        case 1:
+            FaderPattern1.loop2();
+            pattern_time = 43000;
+            break;
+
+        case 2:
+            FaderPattern1.loop3();
+            pattern_time = 10000;
+            break;
+
+        case 3:
+          CollisionPattern.loop();
+          pattern_time = 8000;
+          break;
+    }
+
+
+    if (millis() > (last_switch_at + pattern_time)) {
+        pattern = (pattern + 1) % 4;
+        last_switch_at = millis();
+    }
 }
