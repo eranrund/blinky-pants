@@ -3,6 +3,7 @@
 #define N_LEDS 20
 
 CRGB leds[N_LEDS];
+CRGB * leds2 = (leds + (N_LEDS/2));
 
 CRGB ledsX[N_LEDS];
 #define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
@@ -15,11 +16,11 @@ void setup()
     Serial.println("OK");
 
     FastLED.addLeds<WS2812B, 11, GRB>(leds, N_LEDS);
-    FastLED.addLeds<WS2812B, 12, GRB>(leds + (N_LEDS/2), N_LEDS);
+    FastLED.addLeds<WS2812B, 12, GRB>(leds2, N_LEDS);
     FastLED.setBrightness(40);
 
     for (int i = 0; i < N_LEDS; ++i) {
-        leds[i] = CRGB::Blue;
+        leds[i] = CRGB::Red;
     }
     FastLED.show();
 }
@@ -41,19 +42,8 @@ public:
         balance_dir = true;
     }
 
-    void loop() {
-        int state = (step >> 9) % 9;
-
-        loop2(
-            (state >> 0) & 1,
-            (state >> 1) & 1,
-            (state >> 2) & 1
-        );
-    }
-
-    void loop1() {
+   void loop1() {
         for (int i = 0; i < N_LEDS; ++i) {
-//            leds[i] = CHSV(step >> 5, 255, 155 + v);
             leds[i] = CHSV(step >> 4, 255,
                     200 + (55 * sin(( (step % 200) * 2 * PI / 200)))
             );
@@ -63,7 +53,17 @@ public:
         delay(1);
     }
 
-    void loop2(bool compl_colors, bool cos_sin1, bool interleave) {
+    void loop2() {
+        int state = (step >> 9) % 9;
+
+        loop2(
+            (state >> 0) & 1,
+            (state >> 1) & 1,
+            (state >> 2) & 1
+        );
+    }
+
+     void loop2(bool compl_colors, bool cos_sin1, bool interleave) {
         for (int i = 0; i < N_LEDS / 2; ++i) {
             //leds[i] = CHSV(step >> 5, 255, 155 + (balance / 2));
             //leds[i+ (N_LEDS/2)] = CHSV(step >> 5, 255, 255 - (balance / 2));
@@ -72,15 +72,45 @@ public:
             );
             leds[interleave ? (i * 2) + 1 : i + (N_LEDS/2)] = CHSV(
                     (compl_colors ? 128 : 0) + (step >> 4), 255,
-                    200 + (-55 * (cos_sin1 ? sin : cos)(( (step % 150) * 2 * PI / 150)))
+                    200 + (-55 * (cos_sin1 ? sin : cos)( (step % 150) * 2 * PI / 150))
             );
         }
 
-//        leds[(step >> 4) % (N_LEDS / 2)] = CHSV(255 - (step >> 5), 255, 155 + (balance / 2));
-//        leds[(N_LEDS / 2) + ((step >> 4) % (N_LEDS / 2))] = CHSV(255 - (step >> 5), 255, 255 - (balance / 2));
-
         inc();
         delay(4);
+    }
+
+    void loop3() {
+        const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
+        const unsigned char num_pattern_steps = sizeof(pattern)/sizeof(pattern[0]);
+        static unsigned char pattern_step = 0;
+        static unsigned char next_h = 0;
+
+        unsigned char next_v = pattern[pattern_step];
+        pattern_step = (pattern_step + 1) % num_pattern_steps;
+        if (next_v == 255) {
+            next_v -= random(35);
+        }
+
+        if (pattern_step == 0) {
+            next_h = random(255);
+        }
+
+
+        memmove(leds + 1, leds, sizeof(leds[0]) * ((N_LEDS / 2) - 1));
+        memmove(leds2 + 1, leds2, sizeof(leds[0]) * ((N_LEDS / 2) - 1));
+        
+        leds[0] = CHSV(       
+            next_h,
+            255,
+            next_v
+        );
+
+        leds2[0] = leds[0];
+
+        inc();
+//        delay(74);
+        delay(sin( (step % 40) * 2*PI / 40 ) + 60);
     }
 
     void inc() {
@@ -303,6 +333,7 @@ public:
 CollisionPattern CollisionPattern;
 
 void loop() {
-    FaderPattern1.loop();
+//    FaderPattern1.loop();
+    FaderPattern1.loop3();
 //      CollisionPattern.loop();
 }
