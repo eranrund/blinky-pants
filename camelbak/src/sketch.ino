@@ -10,14 +10,20 @@ CRGB ledsX[N_LEDS];
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
  
 
+bool g_sw = false;
+
 void setup()
 {
     Serial.begin(9600);
     Serial.println("OK");
 
-    FastLED.addLeds<WS2812B, 11, GRB>(leds, N_LEDS);
-    FastLED.addLeds<WS2812B, 12, GRB>(leds2, N_LEDS);
-    FastLED.setBrightness(40);
+    pinMode(3, INPUT_PULLUP);
+    delay(30);
+    g_sw = digitalRead(3) == 1 ? false : true;
+
+    FastLED.addLeds<WS2812B, 8, GRB>(leds, N_LEDS);
+    FastLED.addLeds<WS2812B, 9, GRB>(leds2, N_LEDS);
+    FastLED.setBrightness(g_sw ? 40 : 100);
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Red;
