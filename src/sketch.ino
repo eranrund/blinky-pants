@@ -100,8 +100,20 @@ inline void FaderPattern1_loop2_5() { FaderPattern1.loop2(true, false, true); }
 inline void FaderPattern1_loop2_6() { FaderPattern1.loop2(false, true, true); }
 inline void FaderPattern1_loop2_7() { FaderPattern1.loop2(true, true, true); }
 inline void FaderPattern1_loop3() { FaderPattern1.loop3(); }
+void SymSimpleHSV_pat();
+void EMS_pat();
+void Flicker_pat();
+void RandomMartch_pat();
+void Flame_pat();
+void Matrix_pat();
 
 const PatternInstance PantsV2_PatternInstances[] = {
+    {Matrix_pat, 5000},
+    {Flame_pat, 5000},
+    {RandomMartch_pat, 5000},            
+    {Flicker_pat, 5000},
+    {EMS_pat, 5000},
+    {SymSimpleHSV_pat, 5000},
     {FaderPattern1_loop1, 5000},
     {FaderPattern1_loop2_0, 5375},
     {FaderPattern1_loop2_1, 5375},
@@ -361,11 +373,11 @@ inline void loop_serial() {
                 Serial.print("Version: ");
                 Serial.println(PANTS_VERSION);
 
- /*               Serial.print("Pattern: ");  TODO 
-                if (pattern_auto_inc) {
+                Serial.print("Pattern: ");   
+/* TODO                if (pattern_auto_inc) {
                    Serial.print("autoinc ");
-                }
-                Serial.println(pattern);*/
+                } */
+                Serial.println(g_pattern);
 
                 Serial.print("Speed: ");
                 Serial.println(g_speed);
@@ -393,14 +405,17 @@ inline void loop_speed() {
     g_speed = (analogRead(SPEED_PIN) >> 3);
 }
 
+
 inline void loop_pattern() {       
     g_patterns[g_pattern].loop();
 
     if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
-        advance_pattern(true);
+// TODO        advance_pattern(true);
     }
 
 }
+
+
 
 void loop() {
     loop_brightness();
@@ -422,10 +437,6 @@ void loop() {
 
 
 void efx_blink(int h, int repeats);
-void goto_pattern(unsigned char p);
-void advance_pattern(bool dir);
-void micbar1loop();
-void micbar2loop();
 void SymSimpleHSV_pat();
 void EMS_pat();
 void Flicker_pat();
@@ -442,6 +453,11 @@ unsigned char collision();
 void RingsHSV_Loop();
 void ShootRings_Loop();
 void SpinningRings_Loop(bool sym);
+
+
+
+void micbar1loop();
+void micbar2loop();
 
 int NUM_STATES;
 
@@ -915,9 +931,12 @@ void SimpleHSV_pat()
 void SymSimpleHSV_pat()
 {
     for (int i = 0; i < N_LEDS/2; ++i) {
-        leds[i] = CHSV((i + loopCount) % 255, 255, 255);
-        leds[N_LEDS - i - 1] = leds[i];
+       leds[i] = CHSV((i + loopCount) % 255, 255, 255);
+       leds[N_LEDS - i - 1] = leds[i];
     }
+    FastLED.show();
+    delay(map(g_speed, 0, 0xff, 0, 50));
+    loopCount++;
 }
 
 
@@ -1477,19 +1496,25 @@ void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
 
   if ((loopCount % 3) == 0) ++thishue;
 
-  speed_delay(g_speed, 25);
+  FastLED.show();
+  loopCount++;
+  delay(map(g_speed, 0, 0xff, 0, 120));
 }
 
 void Flicker_pat() {
-  int random_bright = random(0,255);
+  int random_bright = random(0, g_brightness < 100 ? 200 : 255);
   int random_delay = random(10,100);
   int random_bool = random(0,random_bright);
   if (random_bool < 10) {
+      CHSV c = CHSV(160, 50, random_bright);
     for(int i = 0 ; i < N_LEDS; i++ ) {
-      leds[i] = CHSV(160, 50, random_bright);
+      leds[i] = c;
     }
-    speed_delay(g_speed, random_delay / 2);
+      delay(map(g_speed, 0, 0xff,random_delay / 4, random_delay * 4));
+    
   }
+
+      FastLED.show();
 
 }
 
@@ -1520,6 +1545,7 @@ void RandomMartch_pat()
   }
 
   LEDS.show();  
+  delay(map(g_speed, 0, 0xff, 10, 200));
 }
 
 #define EVENODD (N_LEDS % 2)
@@ -1547,7 +1573,9 @@ void Flame_pat() {
     leds[j1] = CHSV(ghue, thissat, 255);
     leds[j2] = CHSV(bhue, thissat, 255);    
   }
-  speed_delay(g_speed, 10);
+  delay(map(g_speed, 0, 0xff, 5, 130));
+  FastLED.show();
+  loopCount++;
 }
 
 void Matrix_pat() {
@@ -1565,7 +1593,9 @@ void Matrix_pat() {
     leds[i].g = ledsX[i-1][1];
     leds[i].b = ledsX[i-1][2];    
   }
-  speed_delay(g_speed, 35);
+
+    FastLED.show();
+    delay(map(g_speed, 0, 0xff, 5, 300));
 }
 
 
