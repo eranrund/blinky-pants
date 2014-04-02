@@ -1,0 +1,108 @@
+#include "BlinkyCommon.h"
+
+class BlinkyFaderPattern1 : public BasePattern {
+public:
+    int v;
+    bool dir;
+
+    int balance;
+    bool balance_dir;
+
+    BlinkyFaderPattern1() : BasePattern(0xffffffff) {
+        v = 0;
+        dir = true;
+        balance = 0;
+        balance_dir = true;
+    }
+
+   void loop1() {
+       CHSV c = CHSV(step >> 4, 255,
+                    200 + (55 * sin(( (step % 200) * 2 * PI / 200))));
+
+        for (int i = 0; i < N_LEDS; ++i) {
+            leds[i] = c;
+        }
+
+        inc();
+        delay(1);
+    }
+
+    void loop2() {
+        int state = (step >> 9) % 9;
+
+        loop2(
+            (state >> 0) & 1,
+            (state >> 1) & 1,
+            (state >> 2) & 1
+        );
+    }
+
+     void loop2(bool compl_colors, bool cos_sin1, bool interleave) {
+         CHSV c1, c2;
+        
+         c1 = CHSV(step >> 4, 255,
+            200 + (55 * sin(( (step % 150) * 2 * PI / 150))));  
+         c2 = CHSV(
+                    (compl_colors ? 128 : 0) + (step >> 4), 255,
+                    200 + (-55 * (cos_sin1 ? sin : cos)( (step % 150) * 2 * PI / 150))
+            );
+
+
+
+        for (int i = 0; i < N_LEDS / 2; ++i) {
+            //leds[i] = CHSV(step >> 5, 255, 155 + (balance / 2));
+            //leds[i+ (N_LEDS/2)] = CHSV(step >> 5, 255, 255 - (balance / 2));
+            leds[interleave ? i * 2 : i] = c1;
+            leds[interleave ? (i * 2) + 1 : i + (N_LEDS/2)] = c2;
+        }
+
+        inc();
+        delay(4);
+    }
+
+    void loop3() {        
+        static const unsigned char pattern[] = {0, 64, 128, 255, 128, 64, 0};
+        static StepGenerator gen1(pattern, sizeof(pattern)/sizeof(pattern[0]));        
+        static unsigned char next_h = 0;
+
+        unsigned char next_v = gen1.next();
+        if (next_v == 255) {
+            next_v -= random(35);
+        }
+
+        if (gen1.step == 0) {
+            next_h = random(255);
+        }
+
+
+        memmove(leds + 1, leds, sizeof(leds[0]) * ((N_LEDS / 2) - 1));
+        memmove(leds2 + 1, leds2, sizeof(leds[0]) * ((N_LEDS / 2) - 1));
+        
+        leds[0] = CHSV(       
+            next_h,
+            255,
+            next_v
+        );
+
+        leds2[0] = leds[0];
+
+        inc();
+        delay(20 * sin( (step % 150) * 2*PI / 150 ) + 60);
+    }
+
+    void inc() {
+        BasePattern::loop();
+        FastLED.show();
+
+        v += dir ? 1 : -1;
+        if ((v == 100) || (v == 0)) {
+            dir = !dir;
+        }
+
+        balance += balance_dir ? 1 : -1;
+        if ((balance == 0) || (balance == 200)) {
+            balance_dir = !balance_dir;
+        }
+
+    }
+};

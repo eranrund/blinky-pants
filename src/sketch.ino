@@ -1,13 +1,16 @@
+#include <MemoryFree.h>
 #include "FastSPI_LED2.h"
 #include <EEPROM.h>
 #include <Encoder.h>
+#include "BlinkyCommon.h"
+#include "BlinkyFaderPattern.h"
 
-typedef struct led_range_s {
-    unsigned char start;
-    unsigned char end;
-} led_range_t;
 
-const led_range_t rings[] = {
+////////////////////////////////////////////////////////////////////////////////
+// Config
+////////////////////////////////////////////////////////////////////////////////
+
+const LedRange rings[] = {
     // left
     {0, 17},
     {20, 35},
@@ -24,9 +27,9 @@ const led_range_t rings[] = {
     {167, 178},
     {181, 191},
 };
-#define n_rings (sizeof(rings)/sizeof(rings[0]))
+#define n_rings arr_len(rings)
 
-const led_range_t lines[] = {
+const LedRange lines[] = {
     // left
     {18, 18}, // 1
     {19, 20}, // 2
@@ -43,37 +46,411 @@ const led_range_t lines[] = {
     {165, 167}, // 3
     {179, 181}, // 3
 };
-#define n_lines (sizeof(lines)/sizeof(lines[0]))
-
-
+#define n_lines arr_len(lines)
 
 #define DATA_PIN 9
 #define ENC1_PIN1 2
 #define ENC1_PIN2 3
 #define ENC1_SW_PIN 4
-#define BRIGHTNESS_PIN A1
-#define SPEED_PIN A0
+#define BRIGHTNESS_PIN A0
+#define SPEED_PIN A1
 
 #define MAX_LEDS 192
+
+
 CRGB leds[MAX_LEDS];
 CRGB ledsX[MAX_LEDS];
-
+CRGB * leds2;
 #define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
 
 
+int PANTS_VERSION = 2;
+int N_LEDS;
 
-////
+
+//
+unsigned char g_brightness = 16;
+unsigned char g_speed = 10;
+unsigned char g_pattern = 0;
+unsigned long g_pattern_duration = 0;
+unsigned long g_pattern_last_switch_at = 0;
+unsigned char g_num_patterns = 0;
+ 
+
+
+//
+unsigned int seed = 0;
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pattern Instances
+////////////////////////////////////////////////////////////////////////////////
+BlinkyFaderPattern1 FaderPattern1;
+
+
+inline void FaderPattern1_loop1() { FaderPattern1.loop1(); }
+inline void FaderPattern1_loop2_0() { FaderPattern1.loop2(false, false, false); }
+inline void FaderPattern1_loop2_1() { FaderPattern1.loop2(true, false, false); }
+inline void FaderPattern1_loop2_2() { FaderPattern1.loop2(false, true, false); }
+inline void FaderPattern1_loop2_3() { FaderPattern1.loop2(true, true, false); }
+inline void FaderPattern1_loop2_4() { FaderPattern1.loop2(false, false, true); }
+inline void FaderPattern1_loop2_5() { FaderPattern1.loop2(true, false, true); }
+inline void FaderPattern1_loop2_6() { FaderPattern1.loop2(false, true, true); }
+inline void FaderPattern1_loop2_7() { FaderPattern1.loop2(true, true, true); }
+inline void FaderPattern1_loop3() { FaderPattern1.loop3(); }
+
+const PatternInstance PantsV2_PatternInstances[] = {
+    {FaderPattern1_loop1, 5000},
+    {FaderPattern1_loop2_0, 5375},
+    {FaderPattern1_loop2_1, 5375},
+    {FaderPattern1_loop2_2, 5375},
+    {FaderPattern1_loop2_3, 5375},
+    {FaderPattern1_loop2_4, 5375},
+    {FaderPattern1_loop2_5, 5375},
+    {FaderPattern1_loop2_6, 5375},
+    {FaderPattern1_loop2_7, 5375},
+    {FaderPattern1_loop3, 10000},
+};
+
+const PatternInstance * g_patterns;
+
+void switch_patterns(const PatternInstance * patterns, int n_patterns) {
+    g_patterns = patterns;
+    g_num_patterns = n_patterns;
+    goto_pattern(0);
+}
+
+// "Manager"
+void goto_pattern(unsigned char p) {
+    g_pattern = p;
+
+    for (int i = 0; i < 8; i++)
+    {
+        seed += analogRead(i);
+    }
+    randomSeed(seed);
+
+    memset(leds, 0, sizeof(leds));
+    memset(ledsX, 0, sizeof(ledsX));
+    FastLED.show();
+
+    Serial.print("P:");
+    Serial.println(g_pattern);
+    
+    g_pattern_last_switch_at = millis();
+    g_pattern_duration = g_patterns[g_pattern].duration;
+}
+
+void advance_pattern(bool dir) {
+    if (dir) {
+        g_pattern = ((unsigned char)(g_pattern + 1)) % g_num_patterns;
+    } else {
+        if (g_pattern == 0) {
+            g_pattern = g_num_patterns- 1;
+        } else {
+            --g_pattern;
+        }
+    }
+    
+    goto_pattern(g_pattern);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// enc1
+////////////////////////////////////////////////////////////////////////////////
+
 Encoder enc1(ENC1_PIN1,ENC1_PIN2);
 bool enc1_btn = false;
 unsigned long enc1_btn_pressed_at = 0;
 
 
+void enc1_moved_without_btn(bool dir)
+{
+    advance_pattern(dir);
+}
+
+void enc1_moved_with_btn(bool dir)
+{
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// setup
+////////////////////////////////////////////////////////////////////////////////
+
+// initialization stuff
+void setup()
+{
+    Serial.begin(9600);
+    Serial.println("OK");
+
+    for (int i = 0; i < 8; i++)
+    {
+        seed += analogRead(i);
+    }
+    seed += EEPROM.read(0);  // get part of the seed from EEPROM
+    randomSeed(seed);
+    EEPROM.write(0, random(256));
+
+
+    // GET VERSION
+    // D10 - PULL UP = v2
+    //       DOWN TO GND = v1
+    pinMode(10, INPUT_PULLUP);
+    delay(30);
+    PANTS_VERSION = digitalRead(10) == 1 ? 2 : 1;
+
+    pinMode(ENC1_SW_PIN, INPUT_PULLUP);
+
+    if (PANTS_VERSION == 1)
+    {
+        N_LEDS = 106;
+        // TODO NUM_STATES = 13;
+        FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, N_LEDS);
+    }    
+    else if (PANTS_VERSION == 2)
+    {
+        N_LEDS = 192;
+        // TODO NUM_STATES = 17;
+        FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, N_LEDS);        
+    }
+    leds2 = &(leds[N_LEDS/2]);
+
+    FastLED.setBrightness(128);
+    pinMode(DATA_PIN, OUTPUT);
+
+    for (int i = 0; i < N_LEDS; ++i) {
+        leds[i] = CRGB::Red;
+    }
+    FastLED.show();
+
+    switch_patterns(PantsV2_PatternInstances, arr_len(PantsV2_PatternInstances));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Loop
+////////////////////////////////////////////////////////////////////////////////
+
+inline void loop_brightness()
+{
+    unsigned char brightness;
+
+    // TODO
+    /*
+#if PANTS_VERSION == 1
+    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
+//    brightness = 32; // TODO
+    if (abs(brightness - g_brightness) > 5) {
+        if (brightness < 7) {
+            FastLED.setBrightness(0);
+        } else if (brightness > 249) {
+            FastLED.setBrightness(255);
+        } else {            
+            FastLED.setBrightness(brightness);
+        }
+        Serial.print("Brightness: ");
+        Serial.println(brightness);
+        g_brightness = brightness;
+    }
+#elif PANTS_VERSION == 2*/
+    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
+    if (brightness != g_brightness) {
+        FastLED.setBrightness(brightness);
+        g_brightness = brightness;
+    }
+    /*
+#else
+    brightness = 32;
+    if (brightness != g_brightness) {
+        FastLED.setBrightness(brightness);
+        g_brightness = brightness;
+    }
+#endif*/
+}
+
+inline void loop_rotenc1()
+{
+    static long enc_pos = 0;
+    static unsigned long last_change = 0;
+    static bool waiting_for_long_press = false;
+    long new_pos;
+    unsigned long now;
+
+    int sw = digitalRead(ENC1_SW_PIN);
+    while (sw != digitalRead(ENC1_SW_PIN)) {
+        sw = digitalRead(ENC1_SW_PIN);
+        delay(1);
+        Serial.println("%");
+    }
+    if ((sw == 1) & enc1_btn) {
+        // button released
+        enc1_btn = false;
+        waiting_for_long_press = false;
+        Serial.println("ENC1 BTN -");
+        delay(350);
+        enc_pos = enc1.read();
+
+
+        return;
+    } else if ((sw == 0) && !enc1_btn) {
+        // button pressed
+        enc1_btn = true;
+        waiting_for_long_press = true;
+        enc1_btn_pressed_at = millis();
+        Serial.println("ENC1 BTN +");
+    }
+
+    new_pos = enc1.read();
+    if (enc_pos == new_pos) {
+        if (waiting_for_long_press && enc1_btn && ( (millis() - enc1_btn_pressed_at) > 3000)) {
+            /*if (mic_mode == MicOff) {
+                efx_blink(60, 2);
+                mic_mode = MicP1;
+            } else {
+                efx_blink(90, 2);
+                mic_mode = MicOff;
+            }
+            TODO
+            */
+        }
+        return;
+    }
+    waiting_for_long_press = false; // rotenc moved so no longpress
+
+    Serial.println(enc_pos);
+    now = millis();
+    if ((now - last_change) > 300) {
+        last_change = now;
+
+        
+        if (enc1_btn) {             
+            enc1_moved_with_btn(new_pos > enc_pos);
+        } else {
+            // TODO if (mic_mode == MicOff) {
+                enc1_moved_without_btn(new_pos > enc_pos);
+            /* TODO } else {
+                int dir = new_pos > enc_pos ? 1 : -1;
+                mic_mode += dir;
+                if (mic_mode == 0) {
+                    mic_mode = MicStates - 1;
+                } else if (mic_mode == MicStates) {
+                    mic_mode = 1;
+                }                
+            }*/
+        }
+    }
+    enc_pos = new_pos;
+}
+
+
+inline void loop_serial() {
+    unsigned char ch;
+    while (Serial.available()) {
+        ch = Serial.read();
+        switch (ch) {
+            case 'a':
+                // TODO pattern_auto_inc = !pattern_auto_inc;
+
+                /* fallthrough */                
+            case '?':
+                Serial.print("Version: ");
+                Serial.println(PANTS_VERSION);
+
+ /*               Serial.print("Pattern: ");  TODO 
+                if (pattern_auto_inc) {
+                   Serial.print("autoinc ");
+                }
+                Serial.println(pattern);*/
+
+                Serial.print("Speed: ");
+                Serial.println(g_speed);
+
+                Serial.print("Brightness: ");
+                Serial.println(g_brightness);
+
+                Serial.print("Free mem: ");
+                Serial.println(freeMemory());
+                break;
+
+            case '+':
+                advance_pattern(true);
+                break;
+
+            case '-':
+                advance_pattern(false);
+                break;
+        }
+    }
+}
+
+
+inline void loop_speed() {
+    g_speed = (analogRead(SPEED_PIN) >> 3);
+}
+
+inline void loop_pattern() {       
+    g_patterns[g_pattern].loop();
+
+    if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
+        advance_pattern(true);
+    }
+
+}
+
+void loop() {
+    loop_brightness();
+    loop_rotenc1();
+    loop_serial();
+    loop_speed();    
+    loop_pattern();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+void efx_blink(int h, int repeats);
+void goto_pattern(unsigned char p);
+void advance_pattern(bool dir);
+void micbar1loop();
+void micbar2loop();
+void SymSimpleHSV_pat();
+void EMS_pat();
+void Flicker_pat();
+void RandomMartch_pat();
+void Flame_pat();
+void Matrix_pat();
+void warmWhiteShimmer(unsigned char dimOnly);
+void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly);
+void traditionalColors();
+void colorExplosion(unsigned char noNewBursts);
+void gradient();
+void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned char noNewBursts);
+unsigned char collision();
+void RingsHSV_Loop();
+void ShootRings_Loop();
+void SpinningRings_Loop(bool sym);
+
+int NUM_STATES;
+
+////
+
+
 // system timer, incremented by one every time through the main loop
 unsigned int loopCount = 0;
 
-int g_speed;
-unsigned int seed = 0;  // used to initialize random number generator
 
 // enumerate the possible patterns in the order they will cycle
 enum Pattern {
@@ -117,107 +494,10 @@ bool pattern_auto_inc = true;
 unsigned int maxLoops;  // go to next state when loopCount >= maxLoops
 unsigned char mic_mode = MicOff;
 
-#ifndef cbi
-#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
-#endif
-#ifndef sbi
-#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
-#endif
-
-int PANTS_VERSION = 2;
-int NUM_LEDS;
-int NUM_STATES;
-
-
-// initialization stuff
-void setup()
-{
-    Serial.begin(9600);
-    Serial.println("OK");
-
-    for (int i = 0; i < 8; i++)
-    {
-        seed += analogRead(i);
-    }
-    seed += EEPROM.read(0);  // get part of the seed from EEPROM
-    randomSeed(seed);
-    EEPROM.write(0, random(256));
-
-
-    // GET VERSION
-    // D10 - PULL UP = v2
-    //       DOWN TO GND = v1
-    pinMode(10, INPUT_PULLUP);
-    delay(30);
-    PANTS_VERSION = digitalRead(10) == 1 ? 2 : 1;
-
-    pinMode(ENC1_SW_PIN, INPUT_PULLUP);
-
-    if (PANTS_VERSION == 1)
-    {
-        NUM_LEDS = 106;
-        NUM_STATES = 13;
-        FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
-    }    
-    else if (PANTS_VERSION == 2)
-    {
-        NUM_LEDS = 192;
-        NUM_STATES = 17;
-        FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);        
-    }
-
-    FastLED.setBrightness(128);
-    pinMode(DATA_PIN, OUTPUT);
-
-    for (int i = 0; i < NUM_LEDS; ++i) {
-        leds[i] = CRGB::Red;
-    }
-    FastLED.show();
-
-}
-
-
 // main loop
-unsigned char cur_brightness = 16;
-void loop_brightness()
-{
-    unsigned char brightness;
-
-    // TODO
-    /*
-#if PANTS_VERSION == 1
-    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
-//    brightness = 32; // TODO
-    if (abs(brightness - cur_brightness) > 5) {
-        if (brightness < 7) {
-            FastLED.setBrightness(0);
-        } else if (brightness > 249) {
-            FastLED.setBrightness(255);
-        } else {            
-            FastLED.setBrightness(brightness);
-        }
-        Serial.print("Brightness: ");
-        Serial.println(brightness);
-        cur_brightness = brightness;
-    }
-#elif PANTS_VERSION == 2*/
-    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 3);
-    if (brightness != cur_brightness) {
-        FastLED.setBrightness(brightness);
-        cur_brightness = brightness;
-    }
-    /*
-#else
-    brightness = 32;
-    if (brightness != cur_brightness) {
-        FastLED.setBrightness(brightness);
-        cur_brightness = brightness;
-    }
-#endif*/
-}
 
 unsigned char enc_pattern_state = 0;
-void enc1_moved_with_btn(bool dir)
+void old_enc1_moved_with_btn(bool dir)
 {    
 
     if (dir) {
@@ -252,168 +532,17 @@ void enc1_moved_with_btn(bool dir)
     Serial.println(enc_pattern_state);
 }
 
-void enc1_moved_without_btn(bool dir)
-{
-    pattern_auto_inc = true;
-    advance_pattern(dir);
-}
-
-void loop_rotenc1()
-{
-    static long enc_pos = 0;
-    static unsigned long last_change = 0;
-    long new_pos;
-    unsigned long now;
-    static bool waiting_for_long_press = false;
-
-    int sw = digitalRead(ENC1_SW_PIN);
-    while (sw != digitalRead(ENC1_SW_PIN)) {
-        sw = digitalRead(ENC1_SW_PIN);
-        delay(1);
-        Serial.println("%");
-    }
-    if ((sw == 1) & enc1_btn) {
-        // button released
-        enc1_btn = false;
-        waiting_for_long_press = false;
-        Serial.println("ENC1 BTN -");
-        delay(350);
-        enc_pos = enc1.read();
-
-
-        return;
-    } else if ((sw == 0) && !enc1_btn) {
-        // button pressed
-        enc1_btn = true;
-        waiting_for_long_press = true;
-        enc1_btn_pressed_at = millis();
-        Serial.println("ENC1 BTN +");
-    }
-
-    new_pos = enc1.read();
-    if (enc_pos == new_pos) {
-        if (waiting_for_long_press && enc1_btn && ( (millis() - enc1_btn_pressed_at) > 3000)) {
-            if (mic_mode == MicOff) {
-                efx_blink(60, 2);
-                mic_mode = MicP1;
-            } else {
-                efx_blink(90, 2);
-                mic_mode = MicOff;
-            }
-        }
-        return;
-    }
-    waiting_for_long_press = false; // rotenc moved so no longpress
-
-    Serial.println(enc_pos);
-    now = millis();
-    if ((now - last_change) > 300) {
-        last_change = now;
-
-        if (enc1_btn) {             
-            enc1_moved_with_btn(new_pos > enc_pos);
-        } else {
-            if (mic_mode == MicOff) {
-                enc1_moved_without_btn(new_pos > enc_pos);
-            } else {
-                int dir = new_pos > enc_pos ? 1 : -1;
-                mic_mode += dir;
-                if (mic_mode == 0) {
-                    mic_mode = MicStates - 1;
-                } else if (mic_mode == MicStates) {
-                    mic_mode = 1;
-                }                
-            }
-        }
-
-    }
-    enc_pos = new_pos;
-}
-
-void loop_serial() {
-    unsigned char ch;
-    while (Serial.available()) {
-        ch = Serial.read();
-        switch (ch) {
-            case 'a':
-                pattern_auto_inc = !pattern_auto_inc;
-
-                /* fallthrough */                
-            case '?':
-                Serial.print("Version: ");
-                Serial.println(PANTS_VERSION);
-
-                Serial.print("Pattern: ");
-                if (pattern_auto_inc) {
-                   Serial.print("autoinc ");
-                }
-                Serial.println(pattern);
-
-                Serial.print("Speed: ");
-                Serial.println(g_speed);
-
-                Serial.print("Brightness: ");
-                Serial.println(cur_brightness);
-                break;
-
-            case '+':
-                advance_pattern(true);
-                break;
-
-            case '-':
-                advance_pattern(false);
-                break;
-        }
-    }
-}
-
-
-void advance_pattern(bool dir) {
-    if (dir) {
-        pattern = ((unsigned char)(pattern + 1)) % NUM_STATES;
-    } else {
-        if (pattern == 0) {
-            pattern = NUM_STATES - 1;
-        } else {
-            --pattern;
-        }
-    }
-    
-    goto_pattern(pattern);
-}
-
-void goto_pattern(unsigned char p) {
-    pattern = p;
-
-    for (int i = 0; i < 8; i++)
-    {
-        seed += analogRead(i);
-    }
-    randomSeed(seed);
-
-    memset(leds, 0, sizeof(leds));
-    memset(ledsX, 0, sizeof(ledsX));
-    FastLED.show();
-    loopCount = 0;
-
-    Serial.print("P:");
-    Serial.println(pattern);
-}
-
-
 inline void speed_delay(int speed, int delay_time) {
    delay(map(speed, 0, 127, 0, delay_time * 7));
 }
-inline void update_g_speed() {
-    g_speed = (analogRead(SPEED_PIN) >> 3);
-}
-
-void loop()
+void old_loop()
 {
     loop_brightness();
     loop_rotenc1();
     loop_serial();
-    update_g_speed();    
+    loop_speed();    
+
+   return; 
 
     // mic mode hack
     switch (mic_mode) {
@@ -459,28 +588,28 @@ void loop()
         break;
 
     case EMS:
-        maxLoops = NUM_LEDS * 4;
+        maxLoops = N_LEDS * 4;
         EMS_pat();
         break;
 
     case Flicker:
-        maxLoops = NUM_LEDS * 5;
+        maxLoops = N_LEDS * 5;
         Flicker_pat();
         break;
 
     case RandomMarch:
-        maxLoops = NUM_LEDS * 2;
+        maxLoops = N_LEDS * 2;
         RandomMartch_pat();
         speed_delay(g_speed, 20);
         break;
 
     case Flame:
-        maxLoops = NUM_LEDS;
+        maxLoops = N_LEDS;
         Flame_pat();
         break;
 
     case Matrix:
-        maxLoops = NUM_LEDS * 3;
+        maxLoops = N_LEDS * 3;
         Matrix_pat();
         break;
 
@@ -673,7 +802,7 @@ void warmWhiteShimmer(unsigned char dimOnly)
   const unsigned char maxBrightness = 120;  // cap on LED brighness
   const unsigned char changeAmount = 2;   // size of random walk step
 
-  for (int i = 0; i < NUM_LEDS; i += 2)
+  for (int i = 0; i < N_LEDS; i += 2)
   {
     // randomly walk the brightness of every even LED
     randomWalk(&leds[i].red, maxBrightness, changeAmount, dimOnly ? 1 : 2);
@@ -683,7 +812,7 @@ void warmWhiteShimmer(unsigned char dimOnly)
     leds[i].blue = leds[i].red >> 3;  // blue = red/8
 
     // every odd LED gets set to a quarter the brighness of the preceding even LED
-    if (i + 1 < NUM_LEDS)
+    if (i + 1 < N_LEDS)
     {
       leds[i+1] = CRGB(leds[i].red >> 2, leds[i].green >> 2, leds[i].blue >> 2);
     }
@@ -712,7 +841,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
   // pick a good starting point for our pattern so the entire strip
   // is lit well (if we pick wrong, the last four LEDs could be off)
   unsigned char start;
-  switch (NUM_LEDS % 7)
+  switch (N_LEDS % 7)
   {
     case 0:
       start = 3;
@@ -727,7 +856,7 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
       start = 2;
   }
 
-  for (int i = start; i < NUM_LEDS; i+=7)
+  for (int i = start; i < N_LEDS; i+=7)
   {
     if (initializeColors == 0)
     {
@@ -764,11 +893,11 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
     {
       leds[i-2] = CRGB(leds[i].red >> 3, leds[i].green >> 3, leds[i].blue >> 3);
     }
-    if (i + 1 < NUM_LEDS)
+    if (i + 1 < N_LEDS)
     {
       leds[i+1] = leds[i-1];
     }
-    if (i + 2 < NUM_LEDS)
+    if (i + 2 < N_LEDS)
     {
       leds[i+2] = leds[i-2];
     }
@@ -778,16 +907,16 @@ void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
 
 void SimpleHSV_pat()
 {
-    for (int i = 0; i < NUM_LEDS; ++i) {
+    for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CHSV((i + loopCount) % 255, 255, 255);
     }
 }
 
 void SymSimpleHSV_pat()
 {
-    for (int i = 0; i < NUM_LEDS/2; ++i) {
+    for (int i = 0; i < N_LEDS/2; ++i) {
         leds[i] = CHSV((i + loopCount) % 255, 255, 255);
-        leds[NUM_LEDS - i - 1] = leds[i];
+        leds[N_LEDS - i - 1] = leds[i];
     }
 }
 
@@ -810,11 +939,11 @@ void traditionalColors()
     return;
   }
 
-  // if NUM_LEDS is not an exact multiple of our repeating pattern size,
+  // if N_LEDS is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
   // that is an exact multiple of the pattern period (20) and is not smaller
   // than the actual LED count.
-  unsigned int extendedLEDCount = (((NUM_LEDS-1)/20)+1)*20;
+  unsigned int extendedLEDCount = (((N_LEDS-1)/20)+1)*20;
 
   for (int i = 0; i < extendedLEDCount; i++)
   {
@@ -824,7 +953,7 @@ void traditionalColors()
     // transform i into a moving idx space that translates one step per
     // brightening cycle and wraps around
     unsigned int idx = (i + cycle)%extendedLEDCount;
-    if (idx < NUM_LEDS)  // if our transformed index exists
+    if (idx < N_LEDS)  // if our transformed index exists
     {
       if (i % 4 == 0)
       {
@@ -946,7 +1075,7 @@ void colorExplosion(unsigned char noNewBursts)
   colorExplosionColorAdjust(&leds[0].green, 9, (unsigned char*)0, &leds[1].green);
   colorExplosionColorAdjust(&leds[0].blue, 9, (unsigned char*)0, &leds[1].blue);
 
-  for (int i = 1; i < NUM_LEDS - 1; i++)
+  for (int i = 1; i < N_LEDS - 1; i++)
   {
     // adjust the colors of second through second-to-last LEDs
     colorExplosionColorAdjust(&leds[i].red, 9, &leds[i-1].red, &leds[i+1].red);
@@ -955,9 +1084,9 @@ void colorExplosion(unsigned char noNewBursts)
   }
 
   // adjust the colors of the last LED
-  colorExplosionColorAdjust(&leds[NUM_LEDS-1].red, 9, &leds[NUM_LEDS-2].red, (unsigned char*)0);
-  colorExplosionColorAdjust(&leds[NUM_LEDS-1].green, 9, &leds[NUM_LEDS-2].green, (unsigned char*)0);
-  colorExplosionColorAdjust(&leds[NUM_LEDS-1].blue, 9, &leds[NUM_LEDS-2].blue, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[N_LEDS-1].red, 9, &leds[N_LEDS-2].red, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[N_LEDS-1].green, 9, &leds[N_LEDS-2].green, (unsigned char*)0);
+  colorExplosionColorAdjust(&leds[N_LEDS-1].blue, 9, &leds[N_LEDS-2].blue, (unsigned char*)0);
 
   if (!noNewBursts)
   {
@@ -965,7 +1094,7 @@ void colorExplosion(unsigned char noNewBursts)
     // to light up
     for (int i = 0; i < 1; i++)
     {
-      int j = random(NUM_LEDS);  // randomly pick an LED
+      int j = random(N_LEDS);  // randomly pick an LED
 
       switch(random(7))  // randomly pick a color
       {
@@ -1024,20 +1153,20 @@ void gradient()
   // populate colors array with full-brightness gradient colors
   // (since the array indices are a function of loopCount, the gradient
   // colors scroll over time)
-  while (j < NUM_LEDS)
+  while (j < N_LEDS)
   {
     // transition from red to green over 8 LEDs
     for (int i = 0; i < 8; i++)
     {
-      if (j >= NUM_LEDS){ break; }
-      leds[(loopCount/2 + j + NUM_LEDS)%NUM_LEDS] = CRGB(160 - 20*i, 20*i, (160 - 20*i)*20*i/160);
+      if (j >= N_LEDS){ break; }
+      leds[(loopCount/2 + j + N_LEDS)%N_LEDS] = CRGB(160 - 20*i, 20*i, (160 - 20*i)*20*i/160);
       j++;
     }
     // transition from green to red over 8 LEDs
     for (int i = 0; i < 8; i++)
     {
-      if (j >= NUM_LEDS){ break; }
-      leds[(loopCount/2 + j + NUM_LEDS)%NUM_LEDS] = CRGB(20*i, 160 - 20*i, (160 - 20*i)*20*i/160);
+      if (j >= N_LEDS){ break; }
+      leds[(loopCount/2 + j + N_LEDS)%N_LEDS] = CRGB(20*i, 160 - 20*i, (160 - 20*i)*20*i/160);
       j++;
     }
   }
@@ -1049,11 +1178,11 @@ void gradient()
   const unsigned char fullBrightLEDs = 5;  // number of LEDs to leave fully bright
   const unsigned char cyclePeriod = 14 + fullDarkLEDs + fullBrightLEDs;
 
-  // if NUM_LEDS is not an exact multiple of our repeating pattern size,
+  // if N_LEDS is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
   // that is an exact multiple of the pattern period (cyclePeriod) and is not
   // smaller than the actual LED count.
-  unsigned int extendedLEDCount = (((NUM_LEDS-1)/cyclePeriod)+1)*cyclePeriod;
+  unsigned int extendedLEDCount = (((N_LEDS-1)/cyclePeriod)+1)*cyclePeriod;
 
   j = 0;
   while (j < extendedLEDCount)
@@ -1065,7 +1194,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= NUM_LEDS){ continue; }
+      if (idx >= N_LEDS){ continue; }
 
       leds[idx].red >>= i;
       leds[idx].green >>= i;
@@ -1077,7 +1206,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= NUM_LEDS){ continue; }
+      if (idx >= N_LEDS){ continue; }
 
       leds[idx].red = 0;
       leds[idx].green = 0;
@@ -1089,7 +1218,7 @@ void gradient()
     {
       idx = (j + loopCount) % extendedLEDCount;
       if (j++ >= extendedLEDCount){ return; }
-      if (idx >= NUM_LEDS){ continue; }
+      if (idx >= N_LEDS){ continue; }
 
       leds[idx].red >>= (7 - i);
       leds[idx].green >>= (7 - i);
@@ -1127,7 +1256,7 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
   // * It will automatically grow through 3, 7, 15, 31, 63, 127, 255.
   // * When it reaches 255, it gets set to 254, which starts the fade
   //   (the fade process always keeps the color even).
-  for (int i = 0; i < NUM_LEDS; i++)
+  for (int i = 0; i < N_LEDS; i++)
   {
     brightTwinkleColorAdjust(&leds[i].red);
     brightTwinkleColorAdjust(&leds[i].green);
@@ -1140,7 +1269,7 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
     // to light up
     for (int i = 0; i < 4; i++)
     {
-      int j = random(NUM_LEDS);
+      int j = random(N_LEDS);
       if (leds[j].red == 0 && leds[j].green == 0 && leds[j].blue == 0)
       {
         // if the LED we picked is not already lit, pick a random
@@ -1221,9 +1350,9 @@ unsigned char collision()
     // stream is led by two full-white LEDs
     leds[1] = leds[2] = CRGB(255, 255, 255);
     // make other side of the strip a mirror image of this side
-    leds[NUM_LEDS - 1] = leds[0];
-    leds[NUM_LEDS - 2] = leds[1];
-    leds[NUM_LEDS - 3] = leds[2];
+    leds[N_LEDS - 1] = leds[0];
+    leds[N_LEDS - 2] = leds[1];
+    leds[N_LEDS - 3] = leds[2];
 
     state++;  // advance to next state
     count = 8;  // pick the first value of count that results in a startIdx of 1 (see below)
@@ -1236,7 +1365,7 @@ unsigned char collision()
     unsigned int startIdx = count*(count + 1) >> 6;
     unsigned int stopIdx = startIdx + (count >> 5);
     count++;
-    if (startIdx < (NUM_LEDS + 1)/2)
+    if (startIdx < (N_LEDS + 1)/2)
     {
       // if streams have not crossed the half-way point, keep them growing
       for (int i = 0; i < startIdx-1; i++)
@@ -1245,14 +1374,14 @@ unsigned char collision()
         fade(&leds[i].red, 5);
         fade(&leds[i].green, 5);
         fade(&leds[i].blue, 5);
-        fade(&leds[NUM_LEDS - i - 1].red, 5);
-        fade(&leds[NUM_LEDS - i - 1].green, 5);
-        fade(&leds[NUM_LEDS - i - 1].blue, 5);
+        fade(&leds[N_LEDS - i - 1].red, 5);
+        fade(&leds[N_LEDS - i - 1].green, 5);
+        fade(&leds[N_LEDS - i - 1].blue, 5);
       }
       for (int i = startIdx; i <= stopIdx; i++)
       {
         // generate new parts of the stream
-        if (i >= (NUM_LEDS + 1) / 2)
+        if (i >= (N_LEDS + 1) / 2)
         {
           // anything past the halfway point is white
           leds[i] = CRGB(255, 255, 255);
@@ -1262,19 +1391,19 @@ unsigned char collision()
           leds[i] = leds[i-1];
         }
         // make other side of the strip a mirror image of this side
-        leds[NUM_LEDS - i - 1] = leds[i];
+        leds[N_LEDS - i - 1] = leds[i];
       }
       // stream is led by two full-white LEDs
       leds[stopIdx + 1] = leds[stopIdx + 2] = CRGB(255, 255, 255);
       // make other side of the strip a mirror image of this side
-      leds[NUM_LEDS - stopIdx - 2] = leds[stopIdx + 1];
-      leds[NUM_LEDS - stopIdx - 3] = leds[stopIdx + 2];
+      leds[N_LEDS - stopIdx - 2] = leds[stopIdx + 1];
+      leds[N_LEDS - stopIdx - 3] = leds[stopIdx + 2];
     }
     else
     {
       // streams have crossed the half-way point of the strip;
       // flash the entire strip full-brightness white (ignores maxBrightness limits)
-      for (int i = 0; i < NUM_LEDS; i++)
+      for (int i = 0; i < N_LEDS; i++)
       {
         leds[i] = CRGB(255, 255, 255);
       }
@@ -1296,7 +1425,7 @@ unsigned char collision()
     }
 
     // fade the LEDs at different rates based on the state
-    for (int i = 0; i < NUM_LEDS; i++)
+    for (int i = 0; i < N_LEDS; i++)
     {
       switch (state/3)
       {
@@ -1331,16 +1460,16 @@ unsigned char collision()
   return 0;
 }
 
-#define TOP_INDEX (NUM_LEDS/2)
+#define TOP_INDEX (N_LEDS/2)
 int antipodal_index(int i) {
   int iN = i + TOP_INDEX;
-  if (i >= TOP_INDEX) {iN = ( i + TOP_INDEX ) % NUM_LEDS; }
+  if (i >= TOP_INDEX) {iN = ( i + TOP_INDEX ) % N_LEDS; }
   return iN;
 }
 
 int thishue = 0;
 void EMS_pat() {                  //-m8-EMERGENCY LIGHTS (TWO COLOR SOLID)
-  int loopCountR = (loopCount % NUM_LEDS);
+  int loopCountR = (loopCount % N_LEDS);
   int loopCountB = antipodal_index(loopCountR);
   int thathue = (thishue + 160) % 255;
   leds[loopCountR] = CHSV(thishue, 255, 255);
@@ -1356,7 +1485,7 @@ void Flicker_pat() {
   int random_delay = random(10,100);
   int random_bool = random(0,random_bright);
   if (random_bool < 10) {
-    for(int i = 0 ; i < NUM_LEDS; i++ ) {
+    for(int i = 0 ; i < N_LEDS; i++ ) {
       leds[i] = CHSV(160, 50, random_bright);
     }
     speed_delay(g_speed, random_delay / 2);
@@ -1367,7 +1496,7 @@ void Flicker_pat() {
 int adjacent_ccw(int i) {
   int r;
   if (i > 0) {r = i - 1;}
-  else {r = NUM_LEDS - 1;}
+  else {r = N_LEDS - 1;}
   return r;
 }
 
@@ -1377,15 +1506,15 @@ void RandomMartch_pat()
   int iCCW;
   copy_led_array();
   leds[0] = CHSV(random(0,255), 255, 255);
-  for(int idex = 1; idex < NUM_LEDS ; idex++ ) {
+  for(int idex = 1; idex < N_LEDS ; idex++ ) {
     iCCW = adjacent_ccw(idex);
     leds[idex].r = ledsX[iCCW][0];
     leds[idex].g = ledsX[iCCW][1];
     leds[idex].b = ledsX[iCCW][2];
   }
-  if (loopCount > NUM_LEDS) {
-    for (int i = 0; i < loopCount - NUM_LEDS; ++i) {
-        if (i >= NUM_LEDS) break;
+  if (loopCount > N_LEDS) {
+    for (int i = 0; i < loopCount - N_LEDS; ++i) {
+        if (i >= N_LEDS) break;
         leds[i] = CRGB(0,0,0);
     }
   }
@@ -1393,27 +1522,27 @@ void RandomMartch_pat()
   LEDS.show();  
 }
 
-#define EVENODD (NUM_LEDS % 2)
+#define EVENODD (N_LEDS % 2)
 int horizontal_index(int i) {
   //-ONLY WORKS WITH INDEX < TOPINDEX
   if (i == 0) {return 0;}
   if (i == TOP_INDEX && EVENODD == 1) {return TOP_INDEX + 1;}
   if (i == TOP_INDEX && EVENODD == 0) {return TOP_INDEX;}
-  return NUM_LEDS - i;  
+  return N_LEDS - i;  
 }
 
 void Flame_pat() {
   int ghue = (0 + 80) % 255;
   int bhue = (0 + 160) % 255;
-  int N3  = int(NUM_LEDS/3);
-  int N6  = int(NUM_LEDS/6);  
-  int N12 = int(NUM_LEDS/12);  
+  int N3  = int(N_LEDS/3);
+  int N6  = int(N_LEDS/6);  
+  int N12 = int(N_LEDS/12);  
   int idex = loopCount;
   int thissat = 200;
   for(int i = 0; i < N3; i++ ) {
-    int j0 = (idex + i + NUM_LEDS - N12) % NUM_LEDS;
-    int j1 = (j0+N3) % NUM_LEDS;
-    int j2 = (j1+N3) % NUM_LEDS;    
+    int j0 = (idex + i + N_LEDS - N12) % N_LEDS;
+    int j1 = (j0+N3) % N_LEDS;
+    int j2 = (j1+N3) % N_LEDS;    
     leds[j0] = CHSV(0 , thissat, 255);
     leds[j1] = CHSV(ghue, thissat, 255);
     leds[j2] = CHSV(bhue, thissat, 255);    
@@ -1431,7 +1560,7 @@ void Matrix_pat() {
   }
   else {leds[0] = CHSV(thishue, thissat, 0);}
   copy_led_array();
-    for(int i = 1; i < NUM_LEDS; i++ ) {
+    for(int i = 1; i < N_LEDS; i++ ) {
     leds[i].r = ledsX[i-1][0];
     leds[i].g = ledsX[i-1][1];
     leds[i].b = ledsX[i-1][2];    
@@ -1443,13 +1572,13 @@ void Matrix_pat() {
 void efx_blink(int h, int repeats) {
     for (int cnt = 0; cnt < repeats; ++cnt) {
         for (int v = 50; v < 255; v += 3) {
-            for (int i = 0; i < NUM_LEDS; ++i) {
+            for (int i = 0; i < N_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
             LEDS.show();
         }
         for (int v = 255; v > 50; v -= 3) {
-            for (int i = 0; i < NUM_LEDS; ++i) {
+            for (int i = 0; i < N_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
             LEDS.show();
@@ -1458,13 +1587,13 @@ void efx_blink(int h, int repeats) {
 }
 
 
-class BasePattern {
+class BasePattern2 {
 public:
-    const led_range_t * ranges;
+    const LedRange * ranges;
     unsigned char n_ranges;
     unsigned short n_leds;
 
-    BasePattern(const led_range_t * ranges, unsigned char n_ranges) {
+    BasePattern2(const LedRange * ranges, unsigned char n_ranges) {
         this->ranges = ranges;
         this->n_ranges = n_ranges;
         this->n_leds = 0;
@@ -1513,12 +1642,12 @@ public:
 
 };
 
-class HSVPattern : public BasePattern {
+class HSVPattern : public BasePattern2 {
 public:
     unsigned char start_hsv;
     unsigned char num_hsvs;
 
-    HSVPattern(const led_range_t * ranges, unsigned char n_ranges, unsigned char start_hsv, unsigned char num_hsvs) : BasePattern(ranges, n_ranges) {
+    HSVPattern(const LedRange * ranges, unsigned char n_ranges, unsigned char start_hsv, unsigned char num_hsvs) : BasePattern2(ranges, n_ranges) {
         this->start_hsv = start_hsv;
         this->num_hsvs = num_hsvs;
     }
@@ -1534,12 +1663,12 @@ public:
     }
 };
 
-class RingsPatterns : public BasePattern {
+class RingsPatterns : public BasePattern2 {
 public:
     bool speedup;
     int speed_cnt;
 
-   RingsPatterns(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+   RingsPatterns(const LedRange * ranges, unsigned char n_ranges) : BasePattern2(ranges, n_ranges) {
     speedup = false;
     speed_cnt = 0;
 
@@ -1629,9 +1758,9 @@ void SpinningRings_Loop(bool sym) {
 }
 
 
-class MICBarPattern : public BasePattern {
+class MICBarPattern : public BasePattern2 {
 public:
-    MICBarPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges) {
+    MICBarPattern(const LedRange * ranges, unsigned char n_ranges) : BasePattern2(ranges, n_ranges) {
     }
 
     void loop() {
@@ -1677,10 +1806,10 @@ public:
 #define DC_OFFSET  0  // DC offset in mic signal - if unusure, leave 0
 #define NOISE     20  // Noise/hum/interference in mic signal
 #define SAMPLES   40  // Length of buffer for dynamic level adjustment
-//#define TOP       (NUM_LEDS - 2) // Allow dot to go slightly off scale
+//#define TOP       (N_LEDS - 2) // Allow dot to go slightly off scale
 #define PEAK_FALL 5  // Rate of peak falling dot
 
-class MICVUPattern : public BasePattern {
+class MICVUPattern : public BasePattern2 {
 public:
     byte peak, dotCount, volCount;
     int vol[SAMPLES];
@@ -1688,7 +1817,7 @@ public:
     int TOP;
 
 
-    MICVUPattern(const led_range_t * ranges, unsigned char n_ranges) : BasePattern(ranges, n_ranges)
+    MICVUPattern(const LedRange * ranges, unsigned char n_ranges) : BasePattern2(ranges, n_ranges)
     {
         peak      = 0;      // Used for falling dot
         dotCount  = 0;      // Frame counter for delaying dot-falling speed
@@ -1791,3 +1920,6 @@ void micbar1loop() {
 void micbar2loop() {
     micBar2.loop();
 }
+
+
+
