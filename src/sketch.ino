@@ -76,6 +76,7 @@ unsigned char g_pattern = 0;
 unsigned long g_pattern_duration = 0;
 unsigned long g_pattern_last_switch_at = 0;
 unsigned char g_num_patterns = 0;
+unsigned int loopCount = 0; // TODO
  
 
 
@@ -108,6 +109,16 @@ void Flame_pat();
 void Matrix_pat();
 
 const PatternInstance PantsV2_PatternInstances[] = {
+    {SpinningRings_Loop2, 5000},
+    {SpinningRings_Loop1, 5000},
+    {ShootRings_Loop, 5000},
+    {RingsHSV_Loop, 5000},
+    {collision, 5000},
+    {brightTwinkle, 5000},
+    {gradient, 5000},
+    {colorExplosion, 5000},
+    {traditionalColors, 5000},
+    {warmWhiteShimmer, 5000},
     {Matrix_pat, 5000},
     {Flame_pat, 5000},
     {RandomMartch_pat, 5000},            
@@ -150,6 +161,9 @@ void goto_pattern(unsigned char p) {
 
     Serial.print("P:");
     Serial.println(g_pattern);
+
+    // TODO
+    loopCount = 0;
     
     g_pattern_last_switch_at = millis();
     g_pattern_duration = g_patterns[g_pattern].duration;
@@ -410,7 +424,7 @@ inline void loop_pattern() {
     g_patterns[g_pattern].loop();
 
     if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
-// TODO        advance_pattern(true);
+       // TODO advance_pattern(true);
     }
 
 }
@@ -437,19 +451,7 @@ void loop() {
 
 
 void efx_blink(int h, int repeats);
-void SymSimpleHSV_pat();
-void EMS_pat();
-void Flicker_pat();
-void RandomMartch_pat();
-void Flame_pat();
-void Matrix_pat();
-void warmWhiteShimmer(unsigned char dimOnly);
-void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly);
-void traditionalColors();
-void colorExplosion(unsigned char noNewBursts);
-void gradient();
-void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned char noNewBursts);
-unsigned char collision();
+
 void RingsHSV_Loop();
 void ShootRings_Loop();
 void SpinningRings_Loop(bool sym);
@@ -465,23 +467,10 @@ int NUM_STATES;
 
 
 // system timer, incremented by one every time through the main loop
-unsigned int loopCount = 0;
 
 
 // enumerate the possible patterns in the order they will cycle
 enum Pattern {
-    SymSimpleHSV, // 0
-    EMS, // 1
-    Flicker, // 2
-    RandomMarch, // 3
-    Flame, // 4
-    Matrix, //5 
-    WarmWhiteShimmer , // 6
-    RandomColorWalk, // 7
-    TraditionalColors, // 8 
-    ColorExplosion, // 9
-    Gradient, // 10
-    BrightTwinkle, // 11
     Collision, // 12
 
     //NUM_STATES_V1,
@@ -549,8 +538,10 @@ void old_enc1_moved_with_btn(bool dir)
 }
 
 inline void speed_delay(int speed, int delay_time) {
-   delay(map(speed, 0, 127, 0, delay_time * 7));
+//   delay(map(speed, 0, 127, 0, delay_time * 7));
 }
+
+/*
 void old_loop()
 {
     loop_brightness();
@@ -576,137 +567,10 @@ void old_loop()
         memset(leds, 0, sizeof(leds));
     }
 
-    if (pattern == WarmWhiteShimmer || pattern == RandomColorWalk) {
-        // for these two patterns, we want to make sure we get the same
-        // random sequence six times in a row (this provides smoother
-        // random fluctuations in brightness/color)
-        if (loopCount % 6 == 0) {
-            seed = random(30000);
-        }
-
-        randomSeed(seed);
-    }
-
   // call the appropriate pattern routine based on state; these
   // routines just set the colors in the colors array
   switch (pattern)
   {
-    /*case SimpleHSV:
-        maxLoops = 400;
-        SimpleHSV_pat();
-        speed_delay(g_speed, 6);
-        break;*/
-
-    case SymSimpleHSV:        
-        maxLoops = 256;
-        SymSimpleHSV_pat();
-        speed_delay(g_speed, 6);
-        break;
-
-    case EMS:
-        maxLoops = N_LEDS * 4;
-        EMS_pat();
-        break;
-
-    case Flicker:
-        maxLoops = N_LEDS * 5;
-        Flicker_pat();
-        break;
-
-    case RandomMarch:
-        maxLoops = N_LEDS * 2;
-        RandomMartch_pat();
-        speed_delay(g_speed, 20);
-        break;
-
-    case Flame:
-        maxLoops = N_LEDS;
-        Flame_pat();
-        break;
-
-    case Matrix:
-        maxLoops = N_LEDS * 3;
-        Matrix_pat();
-        break;
-
-    case WarmWhiteShimmer:
-      // warm white shimmer for 300 loopCounts, fading over last 70
-      maxLoops = 300;
-      warmWhiteShimmer(loopCount > maxLoops - 70);
-      break;
-
-    case RandomColorWalk:
-      // start with alternating red and green colors that randomly walk
-      // to other colors for 400 loopCounts, fading over last 80
-      maxLoops = 400;
-      randomColorWalk(loopCount == 0 ? 1 : 0, loopCount > maxLoops - 80);
-      break;
-
-    case TraditionalColors:
-      // repeating pattern of red, green, orange, blue, magenta that
-      // slowly moves for 400 loopCounts
-      maxLoops = 600; // was 400
-      traditionalColors();
-      break;
-
-    case ColorExplosion:
-      // bursts of random color that radiate outwards from random points
-      // for 630 loop counts; no burst generation for the last 70 counts
-      // of every 200 count cycle or over the over final 100 counts
-      // (this creates a repeating bloom/decay effect)
-      maxLoops = 630;
-      colorExplosion((loopCount % 200 > 130) || (loopCount > maxLoops - 100));
-      break;
-
-    case Gradient:
-      // red -> white -> green -> white -> red ... gradiant that scrolls
-      // across the strips for 250 counts; this pattern is overlaid with
-      // waves of dimness that also scroll (at twice the speed)
-      maxLoops = 250;
-      gradient();
-      speed_delay(g_speed, 6);  // add an extra 6ms delay to slow things down
-      break;
-
-    case BrightTwinkle:
-      // random LEDs light up brightly and fade away; it is a very similar
-      // algorithm to colorExplosion (just no radiating outward from the
-      // LEDs that light up); as time goes on, allow progressively more
-      // colors, halting generation of new twinkles for last 100 counts.
-      maxLoops = 1200;
-      if (loopCount < 400)
-      {
-        brightTwinkle(0, 1, 0);  // only white for first 400 loopCounts
-      }
-      else if (loopCount < 650)
-      {
-        brightTwinkle(0, 2, 0);  // white and red for next 250 counts
-      }
-      else if (loopCount < 900)
-      {
-        brightTwinkle(1, 2, 0);  // red, and green for next 250 counts
-      }
-      else
-      {
-        // red, green, blue, cyan, magenta, yellow for the rest of the time
-        brightTwinkle(1, 6, loopCount > maxLoops - 100);
-      }
-      break;
-
-    case Collision:
-      // colors grow towards each other from the two ends of the strips,
-      // accelerating until they collide and the whole strip flashes
-      // white and fades; this repeats until the function indicates it
-      // is done by returning 1, at which point we stop keeping maxLoops
-      // just ahead of loopCount
-      if (!collision())
-      {
-        maxLoops = loopCount + 2;
-      }
-      if (g_speed > 64) {
-            speed_delay(g_speed, 3);
-        }
-      break;
-
     case RingsHSV:
       maxLoops = 400;
       RingsHSV_Loop();
@@ -743,7 +607,7 @@ void old_loop()
         }
     }
 }
-
+*/
 
 // This function applies a random walk to val by increasing or
 // decreasing it by changeAmount or by leaving it unchanged.
@@ -813,10 +677,12 @@ void fade(unsigned char *val, unsigned char fadeTime)
 // disables the random increase option when it is true, causing
 // all the LEDs to get dimmer by changeAmount; this can be used for a
 // fade-out effect.
-void warmWhiteShimmer(unsigned char dimOnly)
+void warmWhiteShimmer()
 {
-  const unsigned char maxBrightness = 120;  // cap on LED brighness
+  unsigned char dimOnly = loopCount > 3000 - 70;
+  const unsigned char maxBrightness = 220;  // cap on LED brighness
   const unsigned char changeAmount = 2;   // size of random walk step
+
 
   for (int i = 0; i < N_LEDS; i += 2)
   {
@@ -833,92 +699,18 @@ void warmWhiteShimmer(unsigned char dimOnly)
       leds[i+1] = CRGB(leds[i].red >> 2, leds[i].green >> 2, leds[i].blue >> 2);
     }
   }
+    
+    if (loopCount % 6 == 0) {
+        seed = random(30000);
+    }
+    randomSeed(seed);
+
+
+    FastLED.show();
+    delay(map(g_speed, 0, 0xff, 0, 50));
+    ++loopCount;
 }
 
-
-// ***** PATTERN RandomColorWalk *****
-// This function randomly changes the color of every seventh LED by
-// randomly increasing or decreasing the red, green, and blue components
-// by changeAmount (capped at maxBrightness) or leaving them unchanged.
-// The two preceding and following LEDs are set to progressively dimmer
-// versions of the central color.  The initializeColors argument
-// determines how the colors are initialized:
-//   0: randomly walk the existing colors
-//   1: set the LEDs to alternating red and green segments
-//   2: set the LEDs to random colors
-// When true, the dimOnly argument changes the random walk into a 100%
-// chance of LEDs getting dimmer by changeAmount; this can be used for
-// a fade-out effect.
-void randomColorWalk(unsigned char initializeColors, unsigned char dimOnly)
-{
-  const unsigned char maxBrightness = 180;  // cap on LED brightness
-  const unsigned char changeAmount = 3;  // size of random walk step
-
-  // pick a good starting point for our pattern so the entire strip
-  // is lit well (if we pick wrong, the last four LEDs could be off)
-  unsigned char start;
-  switch (N_LEDS % 7)
-  {
-    case 0:
-      start = 3;
-      break;
-    case 1:
-      start = 0;
-      break;
-    case 2:
-      start = 1;
-      break;
-    default:
-      start = 2;
-  }
-
-  for (int i = start; i < N_LEDS; i+=7)
-  {
-    if (initializeColors == 0)
-    {
-      // randomly walk existing colors of every seventh LED
-      // (neighboring LEDs to these will be dimmer versions of the same color)
-      randomWalk(&leds[i].red, maxBrightness, changeAmount, dimOnly ? 1 : 3);
-      randomWalk(&leds[i].green, maxBrightness, changeAmount, dimOnly ? 1 : 3);
-      randomWalk(&leds[i].blue, maxBrightness, changeAmount, dimOnly ? 1 : 3);
-    }
-    else if (initializeColors == 1)
-    {
-      // initialize LEDs to alternating red and green
-      if (i % 2)
-      {
-        leds[i] = CRGB(maxBrightness, 0, 0);
-      }
-      else
-      {
-        leds[i] = CRGB(0, maxBrightness, 0);
-      }
-    }
-    else
-    {
-      // initialize LEDs to a string of random colors
-      leds[i] = CRGB(random(maxBrightness), random(maxBrightness), random(maxBrightness));
-    }
-
-    // set neighboring LEDs to be progressively dimmer versions of the color we just set
-    if (i >= 1)
-    {
-      leds[i-1] = CRGB(leds[i].red >> 2, leds[i].green >> 2, leds[i].blue >> 2);
-    }
-    if (i >= 2)
-    {
-      leds[i-2] = CRGB(leds[i].red >> 3, leds[i].green >> 3, leds[i].blue >> 3);
-    }
-    if (i + 1 < N_LEDS)
-    {
-      leds[i+1] = leds[i-1];
-    }
-    if (i + 2 < N_LEDS)
-    {
-      leds[i+2] = leds[i-2];
-    }
-  }
-}
 
 
 void SimpleHSV_pat()
@@ -951,12 +743,12 @@ void traditionalColors()
   // loop counts to leave strip initially dark
   const unsigned char initialDarkCycles = 10;
   // loop counts it takes to go from full off to fully bright
-  const unsigned char brighteningCycles = 20;
+  const unsigned char brighteningCycles = map(g_speed, 0, 0xff, 0, 55);
 
-  if (loopCount < initialDarkCycles)  // leave strip fully off for 20 cycles
+/*  if (loopCount < initialDarkCycles)  // leave strip fully off for 20 cycles
   {
     return;
-  }
+  }*/
 
   // if N_LEDS is not an exact multiple of our repeating pattern size,
   // it will not wrap around properly, so we pick the closest LED count
@@ -1017,6 +809,9 @@ void traditionalColors()
       }
     }
   }
+
+  FastLED.show();
+  ++loopCount;
 }
 
 
@@ -1087,8 +882,11 @@ void colorExplosionColorAdjust(unsigned char *color, unsigned char propChance,
 // This function uses a very similar algorithm to the BrightTwinkle
 // pattern.  The main difference is that the random twinkling LEDs of
 // the BrightTwinkle pattern do not propagate to neighboring LEDs.
-void colorExplosion(unsigned char noNewBursts)
+void colorExplosion()
 {
+    unsigned char noNewBursts = (loopCount % 200 > 130) || (loopCount > 630 - 100);
+
+
   // adjust the colors of the first LED
   colorExplosionColorAdjust(&leds[0].red, 9, (unsigned char*)0, &leds[1].red);
   colorExplosionColorAdjust(&leds[0].green, 9, (unsigned char*)0, &leds[1].green);
@@ -1157,6 +955,15 @@ void colorExplosion(unsigned char noNewBursts)
       }
     }
   }
+
+  if (loopCount == 629) {
+      loopCount = 0;
+    }
+  else{
+      ++loopCount;
+  }
+  FastLED.show();
+  delay(map(g_speed, 0, 0xff, 0, 70));
 }
 
 
@@ -1247,6 +1054,14 @@ void gradient()
     // skip over these LEDs to leave them at full brightness
     j += fullBrightLEDs;
   }
+
+  if (loopCount == 249) {
+      loopCount = 0;
+    } else {
+        loopCount++;
+    }
+  FastLED.show();
+  delay(map(g_speed, 0, 0xff, 0, 100));
 }
 
 
@@ -1264,7 +1079,7 @@ void gradient()
 // This function uses a very similar algorithm to the ColorExplosion
 // pattern.  The main difference is that the random twinkling LEDs of
 // this BrightTwinkle pattern do not propagate to neighboring LEDs.
-void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned char noNewBursts)
+void brightTwinkle_helper(unsigned char minColor, unsigned char numColors, unsigned char noNewBursts)
 {
   // Note: the colors themselves are used to encode additional state
   // information.  If the color is one less than a power of two
@@ -1325,6 +1140,35 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
   }
 }
 
+void brightTwinkle()
+{
+      // random LEDs light up brightly and fade away; it is a very similar
+      // algorithm to colorExplosion (just no radiating outward from the
+      // LEDs that light up); as time goes on, allow progressively more
+      // colors, halting generation of new twinkles for last 100 counts.
+      maxLoops = 1200;
+      if (loopCount < 400)
+      {
+        brightTwinkle_helper(0, 1, 0);  // only white for first 400 loopCounts
+      }
+      else if (loopCount < 650)
+      {
+        brightTwinkle_helper(0, 2, 0);  // white and red for next 250 counts
+      }
+      else if (loopCount < 900)
+      {
+        brightTwinkle_helper(1, 2, 0);  // red, and green for next 250 counts
+      }
+      else
+      {
+        // red, green, blue, cyan, magenta, yellow for the rest of the time
+        brightTwinkle_helper(1, 6, loopCount > maxLoops - 100);
+      }
+
+      FastLED.show();
+      loopCount = (loopCount + 1) % maxLoops;
+      delay(map(g_speed, 0, 0xff, 0, 100));
+}
 
 // ***** PATTERN Collision *****
 // This function spawns streams of color from each end of the strip
@@ -1333,9 +1177,9 @@ void brightTwinkle(unsigned char minColor, unsigned char numColors, unsigned cha
 // maintains a lot of complicated state data and tells the main loop
 // when it is done by returning 1 (a return value of 0 means it is
 // still in progress).
-unsigned char collision()
+unsigned char collision_helper()
 {
-  const unsigned char maxBrightness = 180;  // max brightness for the colors
+  const unsigned char maxBrightness = 255;  // max brightness for the colors
   const unsigned char numCollisions = 5;  // # of collisions before pattern ends
   static unsigned char state = 0;  // pattern state
   static unsigned int count = 0;  // counter used by pattern
@@ -1478,6 +1322,18 @@ unsigned char collision()
 
   return 0;
 }
+void collision() {
+
+    if (!collision_helper()) {
+        maxLoops = loopCount + 2;
+    }
+
+    ++loopCount;
+    if (loopCount >= maxLoops) { loopCount = 0; }
+    FastLED.show();
+
+    delay(map(g_speed, 0, 0xff, 0, 30));
+}
 
 #define TOP_INDEX (N_LEDS/2)
 int antipodal_index(int i) {
@@ -1544,7 +1400,7 @@ void RandomMartch_pat()
     }
   }
 
-  LEDS.show();  
+  FastLED.show();  
   delay(map(g_speed, 0, 0xff, 10, 200));
 }
 
@@ -1740,27 +1596,7 @@ public:
     }
 
     void delay() {
-        int d;
-        if (loopCount == 0) {
-            speedup = random(100) > 50;
-            Serial.println(speedup);
-        //    speedup = true;
-            speed_cnt = 0;
-        }
-
-        if (speedup) {
-            speed_cnt += 1;
-            if (speed_cnt < 160) {
-                d = 20 - (speed_cnt / 16);
-            } else {
-                d = 20 - (speed_cnt / 20);
-            }
-            if (0 > d) d = 0;
-        } else {
-            d = 20;
-        }
-        
-        speed_delay(g_speed, d);
+        ::delay(max(0, map(g_speed, 0, 0xff, 0, 80) + (30 * cos((loopCount % 400) * 2 * PI / 400))));
     }
 };
 
@@ -1774,17 +1610,30 @@ RingsPatterns Rings_pattern(rings, n_rings);
 void RingsHSV_Loop() {
     RingsHSV_pattern.loop();
     LinesHSV_pattern.loop();
-    speed_delay(g_speed, 20);
+    delay(map(g_speed, 0, 0xff, 0, 100));
+    FastLED.show();
+    ++loopCount;
 }
 
 void ShootRings_Loop() {
     Rings_pattern.loop_shoot();
     Rings_pattern.delay();
+    FastLED.show();
+    ++loopCount;
 }
 
-void SpinningRings_Loop(bool sym) {
-    Rings_pattern.loop_spinning(sym);
+void SpinningRings_Loop1() {
+    Rings_pattern.loop_spinning(false);
     Rings_pattern.delay();
+    FastLED.show();
+    ++loopCount;
+}
+
+void SpinningRings_Loop2() {
+    Rings_pattern.loop_spinning(true);
+    Rings_pattern.delay();
+    FastLED.show();
+    ++loopCount;
 }
 
 
