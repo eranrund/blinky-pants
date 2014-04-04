@@ -11,26 +11,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
-// This function fades val by decreasing it by an amount proportional
-// to its current value.  The fadeTime argument determines the
-// how quickly the value fades.  The new value of val will be:
-//   val = val - val*2^(-fadeTime)
-// So a smaller fadeTime value leads to a quicker fade.
-// If val is greater than zero, val will always be decreased by
-// at least 1.
-// val is a pointer to the byte to be faded.
-void fade(unsigned char *val, unsigned char fadeTime)
-{
-  if (*val != 0)
-  {
-    unsigned char subAmt = *val >> fadeTime;  // val * 2^-fadeTime
-    if (subAmt < 1)
-      subAmt = 1;  // make sure we always decrease by at least 1
-    *val -= subAmt;  // decrease value of byte pointed to by val
-  }
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Warm White Shimmer
 ////////////////////////////////////////////////////////////////////////////////
@@ -920,7 +900,6 @@ public:
         for (int i = 0; i < n_ranges; ++i) {
             clearRange(i);
 
-        
             int range_leds = ranges[i].end - ranges[i].start + 1;
             int led_idx = map(g_step % 30, 0, 30, 0, range_leds);
 

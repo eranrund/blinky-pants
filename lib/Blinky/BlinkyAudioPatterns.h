@@ -93,11 +93,8 @@ public:
 
 
         // Color pixels based on rainbow gradient
-        for(i=0; i<TOP; i++) {
-            if(i >= height) {
-//                setRange(i, CRGB::Black);
-            }
-            else Wheel(i, map(i,0,TOP,30,150));   
+        for(i=0; i<height; i++) {
+            Wheel(i, map(i,0,TOP,30,150));   
         }
 
         // Draw peak dot 

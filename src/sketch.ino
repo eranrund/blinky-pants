@@ -125,8 +125,8 @@ const PatternInstance PantsV1_PatternInstances[] = {
     {collision, 5000},
     {brightTwinkle, 5000},
     {gradient, 5000},
-//    {colorExplosion, 5000},
-  //  {traditionalColors, 5000},
+    {colorExplosion, 5000},
+    {traditionalColors, 5000},
     {warmWhiteShimmer, 5000},
     {Matrix_pat, 5000},
     {Flame_pat, 5000},
@@ -145,8 +145,8 @@ const PatternInstance PantsV2_PatternInstances[] = {
     {collision, 5000},
     {brightTwinkle, 5000},
     {gradient, 5000},
-//    {colorExplosion, 5000},
-//    {traditionalColors, 5000},
+    {colorExplosion, 5000},
+    {traditionalColors, 5000},
     {warmWhiteShimmer, 5000},
     {Matrix_pat, 5000},
     {Flame_pat, 5000},
@@ -166,8 +166,8 @@ const PatternInstance PantsV2_PatternInstances[] = {
 };
 
 const PatternInstance Mic_PatternInstances[] = {
-    {micBar1_loop, 0xffffffff},
-    {micBar2_loop, 0xffffffff},
+//    {micBar1_loop, 0xffffffff},
+//    {micBar2_loop, 0xffffffff},
 };
 
 const PatternInstance * g_patterns;
@@ -275,13 +275,11 @@ void setup()
     if (PANTS_VERSION == 1)
     {
         N_LEDS = 106;
-        // TODO NUM_STATES = 13;
         FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, N_LEDS);
     }    
     else if (PANTS_VERSION == 2)
     {
         N_LEDS = 192;
-        // TODO NUM_STATES = 17;
         FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, N_LEDS);        
     }
     leds2 = &(leds[N_LEDS/2]);
@@ -395,17 +393,7 @@ inline void loop_rotenc1()
         if (enc1_btn) {             
             enc1_moved_with_btn(new_pos > enc_pos);
         } else {
-            // TODO if (mic_mode == MicOff) {
-                enc1_moved_without_btn(new_pos > enc_pos);
-            /* TODO } else {
-                int dir = new_pos > enc_pos ? 1 : -1;
-                mic_mode += dir;
-                if (mic_mode == 0) {
-                    mic_mode = MicStates - 1;
-                } else if (mic_mode == MicStates) {
-                    mic_mode = 1;
-                }                
-            }*/
+            enc1_moved_without_btn(new_pos > enc_pos);
         }
     }
     enc_pos = new_pos;
@@ -457,7 +445,6 @@ inline void loop_speed() {
     g_speed = (analogRead(SPEED_PIN) >> 3);
 }
 
-
 inline void loop_pattern() {       
     g_patterns[g_pattern].loop();
 
@@ -465,12 +452,10 @@ inline void loop_pattern() {
     FastLED.show();
 
     if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
-       // TODO advance_pattern(true);
+       advance_pattern(true);
     }
 
 }
-
-
 
 void loop() {
     loop_brightness();
@@ -479,16 +464,6 @@ void loop() {
     loop_speed();    
     loop_pattern();
 }
-
-
-
-
-
-
-
-
-
-
 
 
 void efx_blink(int h, int repeats) {

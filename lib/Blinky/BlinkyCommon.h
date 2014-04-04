@@ -35,6 +35,31 @@ struct PatternInstance {
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Helpers
+////////////////////////////////////////////////////////////////////////////////
+
+// This function fades val by decreasing it by an amount proportional
+// to its current value.  The fadeTime argument determines the
+// how quickly the value fades.  The new value of val will be:
+//   val = val - val*2^(-fadeTime)
+// So a smaller fadeTime value leads to a quicker fade.
+// If val is greater than zero, val will always be decreased by
+// at least 1.
+// val is a pointer to the byte to be faded.
+void fade(unsigned char *val, unsigned char fadeTime)
+{
+  if (*val != 0)
+  {
+    unsigned char subAmt = *val >> fadeTime;  // val * 2^-fadeTime
+    if (subAmt < 1)
+      subAmt = 1;  // make sure we always decrease by at least 1
+    *val -= subAmt;  // decrease value of byte pointed to by val
+  }
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Step Generator
@@ -75,23 +100,6 @@ public:
     void loop() {
     }
 
-    // This function fades val by decreasing it by an amount proportional
-    // to its current value.  The fadeTime argument determines the
-    // how quickly the value fades.  The new value of val will be:
-    //   val = val - val*2^(-fadeTime)
-    // So a smaller fadeTime value leads to a quicker fade.
-    // If val is greater than zero, val will always be decreased by
-    // at least 1.
-    // val is a pointer to the byte to be faded.
-    void fade(unsigned char *val, unsigned char fadeTime) {
-        if (*val != 0) {
-            unsigned char subAmt = *val >> fadeTime;  // val * 2^-fadeTime
-            if (subAmt < 1) {
-                subAmt = 1;  // make sure we always decrease by at least 1
-            }
-            *val -= subAmt;  // decrease value of byte pointed to by val
-        }
-    }
 };
 
 class BasePattern2 {
@@ -123,10 +131,6 @@ public:
                     this->ranges[range].start + (idx - cur_idx)
                 ]);
             }
-        }
-
-        while(1) {
-            Serial.println("fuck");
         }
     }
 
