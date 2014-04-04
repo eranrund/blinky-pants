@@ -17,7 +17,17 @@
 #include "FastSPI_LED2.h"
 extern CRGB leds[];
 extern CRGB * leds2;
+extern CRGB ledsX[];
 extern int N_LEDS;
+extern unsigned char g_speed;
+extern unsigned char g_brightness;
+extern unsigned int g_step;
+extern unsigned int seed;
+
+#define copy_led_array() memcpy(ledsX, leds, sizeof(CRGB)*N_LEDS)
+#define uncopy_led_array() memcpy(leds, ledsX, sizeof(CRGB)*N_LEDS)
+#define speed_delay(min, max) delay(map(g_speed, 0, 0xff, min, max));
+
 
 struct PatternInstance {
     void (*loop)();
@@ -59,22 +69,10 @@ public:
 
 class BasePattern {
 public:
-    unsigned long step, max_steps;
-
-    BasePattern(unsigned long max_steps) {
-        this->step = 0;
-        this->max_steps = max_steps;
+    BasePattern() {
     }
 
     void loop() {
-        step++;
-        if (step == max_steps) {
-            step = 0;
-        }
-    }
-
-    bool next() {
-        return step == (max_steps - 1);
     }
 
     // This function fades val by decreasing it by an amount proportional
@@ -94,6 +92,61 @@ public:
             *val -= subAmt;  // decrease value of byte pointed to by val
         }
     }
+};
+
+class BasePattern2 {
+public:
+    const LedRange * ranges;
+    unsigned char n_ranges;
+    unsigned short n_leds;
+
+    BasePattern2(const LedRange * ranges, unsigned char n_ranges) {
+        this->ranges = ranges;
+        this->n_ranges = n_ranges;
+        this->n_leds = 0;
+
+        for (unsigned char i = 0; i < n_ranges; ++i) {
+            this->n_leds += ranges[i].end - ranges[i].start + 1;
+        }
+    }
+
+    CRGB * pixel(unsigned char idx) {
+        unsigned char cur_idx = 0;
+        unsigned char n_leds;
+        for (unsigned char range = 0; range < this->n_ranges; ++range) {
+            n_leds = this->ranges[range].end - this->ranges[range].start + 1;
+            
+            if ((cur_idx + n_leds) <= idx) {
+                cur_idx += n_leds;
+            } else {
+                return &(leds[
+                    this->ranges[range].start + (idx - cur_idx)
+                ]);
+            }
+        }
+
+        while(1) {
+            Serial.println("fuck");
+        }
+    }
+
+    void setPixel(unsigned char idx, CRGB val) {
+        CRGB * pix = this->pixel(idx);
+        pix->r = val.r;
+        pix->g = val.g;
+        pix->b = val.b;
+    }    
+    void setRange(unsigned char range, CRGB val) {
+        for (unsigned char i = ranges[range].start; i <= ranges[range].end; ++i )
+        {
+            leds[i] = val;
+        }
+    }
+
+    void clearRange(unsigned char range) {
+        memset(&(leds[ranges[range].start]), 0, (ranges[range].end - ranges[range].start + 1) * sizeof(CRGB));
+    }
+
 };
 
 

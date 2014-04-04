@@ -1,0 +1,1 @@
+ino build -m micro && ino upload -m micro && sleep 3 && ino serial -b 9600
