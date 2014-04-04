@@ -102,13 +102,13 @@ public:
 
 };
 
-class BasePattern2 {
+class BasePattern2 : public BasePattern {
 public:
     const LedRange * ranges;
     unsigned char n_ranges;
     unsigned short n_leds;
 
-    BasePattern2(const LedRange * ranges, unsigned char n_ranges) {
+    BasePattern2(const LedRange * ranges, unsigned char n_ranges) : BasePattern() {
         this->ranges = ranges;
         this->n_ranges = n_ranges;
         this->n_leds = 0;
@@ -139,7 +139,7 @@ public:
         pix->r = val.r;
         pix->g = val.g;
         pix->b = val.b;
-    }    
+    }
     void setRange(unsigned char range, CRGB val) {
         for (unsigned char i = ranges[range].start; i <= ranges[range].end; ++i )
         {

@@ -1,1 +1,1 @@
-ino build -m micro -v  --cxxflags=-Os && ino upload -m micro
+ino build -m micro  --cxxflags=-Os && ino upload -m micro

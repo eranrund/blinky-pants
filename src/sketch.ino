@@ -170,6 +170,7 @@ const PatternInstance Mic_PatternInstances[] = {
 //    {micBar2_loop, 0xffffffff},
 };
 
+// "Manager"
 const PatternInstance * g_patterns;
 
 void switch_patterns(const PatternInstance * patterns, int n_patterns) {
@@ -178,7 +179,6 @@ void switch_patterns(const PatternInstance * patterns, int n_patterns) {
     goto_pattern(0);
 }
 
-// "Manager"
 void goto_pattern(unsigned char p) {
     g_pattern = p;
     g_step = 0;
@@ -205,11 +205,7 @@ void advance_pattern(bool dir) {
     if (dir) {
         g_pattern = ((unsigned char)(g_pattern + 1)) % g_num_patterns;
     } else {
-        if (g_pattern == 0) {
-            g_pattern = g_num_patterns- 1;
-        } else {
-            --g_pattern;
-        }
+        g_pattern = ((unsigned char)(g_pattern + (g_num_patterns - 1))) % g_num_patterns;
     }
     
     goto_pattern(g_pattern);
@@ -342,7 +338,7 @@ inline void loop_rotenc1()
     static unsigned long last_change = 0;
     static bool waiting_for_long_press = false;
     long new_pos;
-    unsigned long now;
+    unsigned long now = millis();
 
     int sw = digitalRead(ENC1_SW_PIN);
     while (sw != digitalRead(ENC1_SW_PIN)) {
@@ -354,7 +350,7 @@ inline void loop_rotenc1()
         // button released
         enc1_btn = false;
         waiting_for_long_press = false;
-        Serial.println("ENC1 BTN -");
+        Serial.println("BTN -");
         delay(350);
         enc_pos = enc1.read();
 
@@ -364,13 +360,13 @@ inline void loop_rotenc1()
         // button pressed
         enc1_btn = true;
         waiting_for_long_press = true;
-        enc1_btn_pressed_at = millis();
-        Serial.println("ENC1 BTN +");
+        enc1_btn_pressed_at = now;
+        Serial.println("BTN +");
     }
 
     new_pos = enc1.read();
     if (enc_pos == new_pos) {
-        if (waiting_for_long_press && enc1_btn && ( (millis() - enc1_btn_pressed_at) > 3000)) {
+        if (waiting_for_long_press && enc1_btn && ( (now - enc1_btn_pressed_at) > 3000)) {
             /* long press, toggle mic mode on / off */
             if (g_patterns == Mic_PatternInstances) {
                 efx_blink(60, 2);
@@ -385,10 +381,8 @@ inline void loop_rotenc1()
     waiting_for_long_press = false; // rotenc moved so no longpress
 
     Serial.println(enc_pos);
-    now = millis();
     if ((now - last_change) > 300) {
         last_change = now;
-
         
         if (enc1_btn) {             
             enc1_moved_with_btn(new_pos > enc_pos);
@@ -454,7 +448,6 @@ inline void loop_pattern() {
     if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
        advance_pattern(true);
     }
-
 }
 
 void loop() {
@@ -465,20 +458,19 @@ void loop() {
     loop_pattern();
 }
 
-
 void efx_blink(int h, int repeats) {
     for (int cnt = 0; cnt < repeats; ++cnt) {
         for (int v = 50; v < 255; v += 3) {
             for (int i = 0; i < N_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
-            LEDS.show();
+            FastLED.show();
         }
         for (int v = 255; v > 50; v -= 3) {
             for (int i = 0; i < N_LEDS; ++i) {
                 leds[i] = CHSV(h, 255, v);
             }
-            LEDS.show();
+            FastLED.show();
         }
     }
 }
