@@ -118,10 +118,8 @@ inline void Matrix_pat();
 inline void micBar1_loop() { micBar1.loop(); }
 inline void micBar2_loop() { micBar2.loop(); }
 
-
-
-
-const PatternInstance PantsV1_PatternInstances[] = {
+const PatternInstance Pants_PatternInstances[] = {
+    // V1 + V2 (12 patterns)
     {collision, 5000},
     {brightTwinkle, 5000},
     {gradient, 5000},
@@ -134,25 +132,12 @@ const PatternInstance PantsV1_PatternInstances[] = {
     {Flicker_pat, 5000},
     {EMS_pat, 5000},
     {SymSimpleHSV_pat, 5000},
-};
 
-const PatternInstance PantsV2_PatternInstances[] = {
-    {EMS_pat, 5000},
+    // Only V2 (14)
     {SpinningRings_Loop2, 5000},
     {SpinningRings_Loop1, 5000},
     {ShootRings_Loop, 5000},
     {RingsHSV_Loop, 5000},
-    {collision, 5000},
-    {brightTwinkle, 5000},
-    {gradient, 5000},
-    {colorExplosion, 5000},
-    {traditionalColors, 5000},
-    {warmWhiteShimmer, 5000},
-    {Matrix_pat, 5000},
-    {Flame_pat, 5000},
-    {RandomMartch_pat, 5000},            
-    {Flicker_pat, 5000},
-    {SymSimpleHSV_pat, 5000},
     {FaderPattern1_loop1, 5000},
     {FaderPattern1_loop2_0, 5375},
     {FaderPattern1_loop2_1, 5375},
@@ -164,6 +149,9 @@ const PatternInstance PantsV2_PatternInstances[] = {
     {FaderPattern1_loop2_7, 5375},
     {FaderPattern1_loop3, 10000},
 };
+
+#define PANTS_V1_N_PATTERNS 12
+#define PANTS_V2_N_PATTERNS 14
 
 const PatternInstance Mic_PatternInstances[] = {
 //    {micBar1_loop, 0xffffffff},
@@ -196,7 +184,6 @@ void goto_pattern(unsigned char p) {
     Serial.print("P:");
     Serial.println(g_pattern);
 
-    
     g_pattern_last_switch_at = millis();
     g_pattern_duration = g_patterns[g_pattern].duration;
 }
@@ -236,17 +223,15 @@ void enc1_moved_with_btn(bool dir)
 ////////////////////////////////////////////////////////////////////////////////
 
 void set_default_patterns() {
-    if (PANTS_VERSION == 1) {
-        switch_patterns(PantsV1_PatternInstances, arr_len(PantsV1_PatternInstances));
-    } else {
-        switch_patterns(PantsV2_PatternInstances, arr_len(PantsV2_PatternInstances));
-    }
+    switch_patterns(Pants_PatternInstances, PANTS_VERSION == 1 ? PANTS_V1_N_PATTERNS : PANTS_V2_N_PATTERNS);
 }
 
 
 // initialization stuff
 void setup()
 {
+    StaticAssert<(PANTS_V1_N_PATTERNS + PANTS_V2_N_PATTERNS) == arr_len(Pants_PatternInstances)>::assert();
+
     Serial.begin(9600);
     Serial.println("OK");
 

@@ -34,6 +34,9 @@ struct PatternInstance {
     unsigned long duration;
 };
 
+template <bool b> struct StaticAssert {};
+template <> struct StaticAssert<true> { static void assert() {} };
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
