@@ -11,9 +11,10 @@
 // Config
 ////////////////////////////////////////////////////////////////////////////////
 
-#define DATA_PIN 9
+#define DATA_PIN 4
+#define MIC_SW 10
 
-#define MAX_LEDS 192
+#define MAX_LEDS 67
 
 
 CRGB leds[MAX_LEDS];
@@ -153,11 +154,14 @@ void setup()
     EEPROM.write(0, random(256));
 
 
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, N_LEDS);
+    FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, N_LEDS);
     leds2 = &(leds[N_LEDS/2]);
 
     FastLED.setBrightness(128);
     pinMode(DATA_PIN, OUTPUT);
+
+    pinMode(MIC_SW, INPUT_PULLUP);
+    delay(30);
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Red;
@@ -216,14 +220,22 @@ inline void loop_pattern() {
     ++g_step;
     FastLED.show();
 
-    if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
+    /*if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
        advance_pattern(true);
-    }
+    }*/
 }
 
 void loop() {
     loop_serial();
     loop_pattern();
+
+    if (0 == digitalRead(MIC_SW)) {
+        delay(50);
+        if (0 == digitalRead(MIC_SW)) {
+            advance_pattern(true);
+            delay(100);
+        }
+    }
 }
 
 void efx_blink(int h, int repeats) {
