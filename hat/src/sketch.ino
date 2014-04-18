@@ -29,7 +29,9 @@ void setup()
     FastLED.show();
 
     Wire.begin();
+    Serial.println("IMU");
     my3IMU.init(true);
+    Serial.println("DONE");
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Red;
@@ -362,6 +364,30 @@ public:
 };
 CollisionPattern CollisionPattern;
 
+class FlickerPattern : public BasePattern {
+public:
+    unsigned long next_change;
+    bool dir;
+
+    FlickerPattern() : BasePattern(0xffffffff) {
+        dir = false;
+        next_change = 0;
+    }
+
+    void loop1() {
+        unsigned long now = millis();
+        if (now > next_change) {
+            next_change = now + 100;
+            dir = !dir;
+
+            memset(leds, dir ? 0xff : 0, sizeof(leds));
+            FastLED.show();
+        }
+
+    }
+};
+FlickerPattern FlickerPattern1;
+
 float ypr[3];
 void loop() {
     static unsigned long last_switch_at = 0;
@@ -370,7 +396,12 @@ void loop() {
 
     my3IMU.getYawPitchRoll(ypr);
     //FastLED.setBrightness(map(ypr[2], -90, 90, 0, 255)); 
-    Serial.print(ypr[0]); Serial.print("     "); Serial.print(ypr[1]); Serial.print("     "); Serial.print(ypr[2]); Serial.println(); 
+    //Serial.print(ypr[0]); Serial.print("     "); Serial.print(ypr[1]); Serial.print("     "); Serial.print(ypr[2]); Serial.println(); 
+
+    if (ypr[2] < -30) {
+        FlickerPattern1.loop1();
+        return;
+    } 
 
     
     switch (pattern) {
