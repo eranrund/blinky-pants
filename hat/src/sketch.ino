@@ -21,7 +21,7 @@ void setup()
     Serial.println("OK");
 
     FastLED.addLeds<WS2812B, 13, GRB>(leds, N_LEDS);
-    FastLED.setBrightness(100);
+    FastLED.setBrightness(150);
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Green;
