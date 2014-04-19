@@ -17,12 +17,12 @@ void setup()
     Serial.begin(9600);
     Serial.println("OK");
 
-    pinMode(3, INPUT_PULLUP);
+    pinMode(2, INPUT_PULLUP);
     delay(30);
-    g_sw = digitalRead(3) == 1 ? false : true;
+    g_sw = digitalRead(2) == 1 ? false : true;
 
-    FastLED.addLeds<WS2812B, 8, GRB>(leds, N_LEDS);
-    FastLED.addLeds<WS2812B, 9, GRB>(leds2, N_LEDS);
+    FastLED.addLeds<WS2812B, 9, GRB>(leds, N_LEDS);
+    FastLED.addLeds<WS2812B, 10, GRB>(leds2, N_LEDS);
     FastLED.setBrightness(g_sw ? 40 : 100);
 
     for (int i = 0; i < N_LEDS; ++i) {
