@@ -175,10 +175,10 @@
 <wire x1="35.56" y1="49.276" x2="5.08" y2="49.276" width="0.4064" layer="20"/>
 <wire x1="5.08" y1="49.276" x2="5.08" y2="56.896" width="0.4064" layer="20"/>
 <text x="15.24" y="52.832" size="1.778" layer="20" font="vector">CUT OUT</text>
-<wire x1="5.08" y1="12.7" x2="35.56" y2="12.7" width="0.4064" layer="20"/>
-<wire x1="35.56" y1="12.7" x2="35.56" y2="5.08" width="0.4064" layer="20"/>
-<wire x1="35.56" y1="5.08" x2="5.08" y2="5.08" width="0.4064" layer="20"/>
-<wire x1="5.08" y1="5.08" x2="5.08" y2="12.7" width="0.4064" layer="20"/>
+<wire x1="5.08" y1="11.938" x2="35.56" y2="11.938" width="0.4064" layer="20"/>
+<wire x1="35.56" y1="11.938" x2="35.56" y2="4.826" width="0.4064" layer="20"/>
+<wire x1="35.56" y1="4.826" x2="5.08" y2="4.826" width="0.4064" layer="20"/>
+<wire x1="5.08" y1="4.826" x2="5.08" y2="11.938" width="0.4064" layer="20"/>
 <text x="14.986" y="8.636" size="1.778" layer="20" font="vector">CUT OUT</text>
 <text x="30.734" y="3.556" size="1.778" layer="25" font="vector" rot="R180">blinkybee.com</text>
 <text x="10.922" y="59.944" size="1.778" layer="26" font="vector" rot="MR180">blinkybee.com</text>
