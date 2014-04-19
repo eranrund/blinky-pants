@@ -114,7 +114,7 @@ public:
 
    void loop1() {
         for (int i = 0; i < N_LEDS; ++i) {
-            leds[i] = CHSV(step >> 4, 255,
+            leds[i] = CHSV(step >> 2, 255,
                     200 + (55 * sin(( (step % 200) * 2 * PI / 200)))
             );
         }
@@ -124,7 +124,7 @@ public:
     }
 
     void loop2() {
-        int state = (step >> 9) % 9;
+        int state = (step >> 8) % 9;
 
         loop2(
             (state >> 0) & 1,
@@ -147,7 +147,7 @@ public:
         }
 
         inc();
-        delay(4);
+        delay(2);
     }
 
     void loop3() {        
@@ -388,10 +388,21 @@ public:
 };
 FlickerPattern FlickerPattern1;
 
+void HSV_loop() {
+    static unsigned char h = 0;
+    for (int i = 0; i < N_LEDS; ++i) {
+        leds[i] = CHSV( (h + i) % 255, 255, 255);
+    }
+    FastLED.show();
+    ++h;
+    delay(15);
+}
+
+
 float ypr[3];
 void loop() {
     static unsigned long last_switch_at = 0;
-    static unsigned char pattern = 1;
+    static unsigned char pattern = 0;
     unsigned long pattern_time = 0;
 
     my3IMU.getYawPitchRoll(ypr);
@@ -412,23 +423,28 @@ void loop() {
 
         case 1:
             FaderPattern1.loop2();
-            pattern_time = 43000;
+            pattern_time = 37000;
             break;
 
         case 2:
             FaderPattern1.loop3();
-            pattern_time = 10000;
+            pattern_time = 15000;
             break;
 
         case 3:
-          CollisionPattern.loop();
-          pattern_time = 8000;
-          break;
+            CollisionPattern.loop();
+            pattern_time = 8000;
+            break;
+
+        case 4:
+            HSV_loop();
+            pattern_time = 20000;
+            break;
     }
 
 
     if (millis() > (last_switch_at + pattern_time)) {
-        pattern = (pattern + 1) % 4;
+        pattern = (pattern + 1) % 5;
         last_switch_at = millis();
     }
 }
