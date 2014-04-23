@@ -26,7 +26,7 @@ extern unsigned int seed;
 
 #define copy_led_array() memcpy(ledsX, leds, sizeof(CRGB)*N_LEDS)
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(CRGB)*N_LEDS)
-#define speed_delay(min, max) delay(map(g_speed, 0, 0xff, min, max));
+#define speed_delay(min, max) FastLED.delay(map(g_speed, 0, 0xff, min, max));
 
 
 struct PatternInstance {

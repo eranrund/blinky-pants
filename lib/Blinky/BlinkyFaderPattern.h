@@ -24,7 +24,7 @@ public:
         }
 
         inc();
-        delay(1);
+        FastLED.delay(1);
     }
 
     void loop2() {
@@ -55,7 +55,7 @@ public:
         }
 
         inc();
-        delay(4);
+        FastLED.delay(4);
     }
 
     void loop3() {        
@@ -85,7 +85,7 @@ public:
         leds2[0] = leds[0];
 
         inc();
-        delay(20 * sin( (g_step % 150) * 2*PI / 150 ) + 60);
+        FastLED.delay(20 * sin( (g_step % 150) * 2*PI / 150 ) + 60);
     }
 
     void inc() {

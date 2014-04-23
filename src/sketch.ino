@@ -265,6 +265,8 @@ void setup()
     }
     leds2 = &(leds[N_LEDS/2]);
 
+    FastLED.setCorrection( TypicalLEDStrip );
+
     FastLED.setBrightness(128);
     pinMode(DATA_PIN, OUTPUT);
 
@@ -328,7 +330,7 @@ inline void loop_rotenc1()
     int sw = digitalRead(ENC1_SW_PIN);
     while (sw != digitalRead(ENC1_SW_PIN)) {
         sw = digitalRead(ENC1_SW_PIN);
-        delay(1);
+        FastLED.delay(1);
         Serial.println("%");
     }
     if ((sw == 1) & enc1_btn) {
@@ -336,7 +338,7 @@ inline void loop_rotenc1()
         enc1_btn = false;
         waiting_for_long_press = false;
         Serial.println("BTN -");
-        delay(350);
+        FastLED.delay(350);
         enc_pos = enc1.read();
 
 

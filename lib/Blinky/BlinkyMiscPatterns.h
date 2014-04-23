@@ -768,7 +768,7 @@ void Flicker_pat() {
     for(int i = 0 ; i < N_LEDS; i++ ) {
       leds[i] = c;
     }
-      delay(map(g_speed, 0, 0xff,random_delay / 4, random_delay * 4));
+      FastLED.delay(map(g_speed, 0, 0xff,random_delay / 4, random_delay * 4));
     
   }
 }
@@ -915,7 +915,7 @@ public:
     }
 
     void delay() {
-        ::delay(max(0, map(g_speed, 0, 0xff, 0, 80) + (30 * cos((g_step % 400) * 2 * PI / 400))));
+        FastLED.delay(max(0, map(g_speed, 0, 0xff, 0, 80) + (30 * cos((g_step % 400) * 2 * PI / 400))));
     }
 };
 
