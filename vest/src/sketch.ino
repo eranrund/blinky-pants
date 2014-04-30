@@ -10,6 +10,21 @@
 // Config
 ////////////////////////////////////////////////////////////////////////////////
 
+// strips
+#define S1_LEN 35
+#define S2_LEN 38
+#define S3_LEN 40
+#define S4_LEN 40
+#define S5_LEN 38
+#define S6_LEN 35
+
+#define S1_OFFSET 0
+#define S2_OFFSET (S1_OFFSET + S1_LEN)
+#define S3_OFFSET (S2_OFFSET + S2_LEN)
+#define S4_OFFSET (S3_OFFSET + S3_LEN)
+#define S5_OFFSET (S4_OFFSET + S4_LEN)
+#define S6_OFFSET (S5_OFFSET + S5_LEN)
+
 const LedRange rings[] = {
     // left
     {0, 17},
@@ -52,7 +67,7 @@ const LedRange lines[] = {
 //#define BRIGHTNESS_PIN A0
 //#define SPEED_PIN A1
 
-#define MAX_LEDS 192
+#define MAX_LEDS 250
 
 
 CRGB leds[MAX_LEDS];
@@ -200,8 +215,14 @@ void setup()
     EEPROM.write(0, random(256));
 
 
-    N_LEDS = 50;
-    FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, N_LEDS);
+    N_LEDS = S6_OFFSET + S6_LEN;
+    FastLED.addLeds<WS2812B, 2, GRB>(&(leds[S1_OFFSET]), S1_LEN);
+    FastLED.addLeds<WS2812B, 14, GRB>(&(leds[S2_OFFSET]), S2_LEN);
+    FastLED.addLeds<WS2812B, 7, GRB>(&(leds[S3_OFFSET]), S3_LEN);
+    FastLED.addLeds<WS2812B, 8, GRB>(&(leds[S4_OFFSET]), S4_LEN);
+    FastLED.addLeds<WS2812B, 6, GRB>(&(leds[S5_OFFSET]), S5_LEN);
+    FastLED.addLeds<WS2812B, 20, GRB>(&(leds[S6_OFFSET]), S6_LEN);
+    // extra pins: 21, 5
     leds2 = &(leds[N_LEDS/2]);
 
     FastLED.setBrightness(128);
@@ -209,9 +230,26 @@ void setup()
 
     for (unsigned int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Black;
+        if ((i == S1_OFFSET) ||
+            (i == S2_OFFSET) ||
+            (i == S3_OFFSET) ||
+            (i == S4_OFFSET) ||
+            (i == S5_OFFSET) ||
+            (i == S6_OFFSET)) {
+            leds[i] = CRGB::Red;
+        }
+
+        if ((i == (S1_OFFSET + S1_LEN)) ||
+            (i == (S2_OFFSET + S2_LEN)) ||
+            (i == (S3_OFFSET + S3_LEN)) ||
+            (i == (S4_OFFSET + S4_LEN)) ||
+            (i == (S5_OFFSET + S5_LEN)) ||
+            (i == (S6_OFFSET + S6_LEN))) {
+            leds[i] = CRGB::Green;
+        }
     }
-    leds[33] = CRGB::Green;
-    leds[34] = CRGB::Red;
+
+
 while(1) {
     FastLED.show();
 delay(100);
