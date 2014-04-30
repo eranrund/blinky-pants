@@ -8,6 +8,6 @@ android-ledstrip/bin
 android-ledstrip/libs/colorpicker/bin
 android-ledstrip/libs/color-picker-view-read-only/.svn
 env
-jacket/build
-jacket/jacket.hex
-jacket/jacket.elf
+vest/build
+vest/vest.hex
+vest/vest.elf
