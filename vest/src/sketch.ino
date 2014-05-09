@@ -63,9 +63,8 @@ const LedRange lines[] = {
 };
 #define n_lines arr_len(lines)
 
-#define DATA_PIN 9
-//#define BRIGHTNESS_PIN A0
-//#define SPEED_PIN A1
+#define BRIGHTNESS_PIN A8
+#define SPEED_PIN A9
 
 #define MAX_LEDS 250
 
@@ -206,6 +205,7 @@ void setup()
     Serial.begin(9600);
     Serial.println("OK");
 
+    delay(1000);
     for (int i = 0; i < 8; i++)
     {
         seed += analogRead(i);
@@ -225,8 +225,25 @@ void setup()
     // extra pins: 21, 5
     leds2 = &(leds[N_LEDS/2]);
 
-    FastLED.setBrightness(128);
+    FastLED.setBrightness(255);
     pinMode(DATA_PIN, OUTPUT);
+
+    memset(leds, 0, sizeof(leds));
+   FastLED.show();
+
+   pinMode(18, INPUT_PULLUP);
+   pinMode(19, INPUT_PULLUP);
+  
+  /* 
+   while(1) {
+       //Serial.print(digitalRead(18));
+       Serial.print(analogRead(8));
+       Serial.print("    ");
+       //Serial.println(digitalRead(19));
+       Serial.println(analogRead(9));
+       delay(100);
+   }*/
+
 
     for (unsigned int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Black;
@@ -237,23 +254,28 @@ void setup()
             (i == S5_OFFSET) ||
             (i == S6_OFFSET)) {
             leds[i] = CRGB::Red;
+            continue;
         }
 
-        if ((i == (S1_OFFSET + S1_LEN)) ||
-            (i == (S2_OFFSET + S2_LEN)) ||
-            (i == (S3_OFFSET + S3_LEN)) ||
-            (i == (S4_OFFSET + S4_LEN)) ||
-            (i == (S5_OFFSET + S5_LEN)) ||
-            (i == (S6_OFFSET + S6_LEN))) {
+        if ((i == (S1_OFFSET + S1_LEN - 1)) ||
+            (i == (S2_OFFSET + S2_LEN - 1)) ||
+            (i == (S3_OFFSET + S3_LEN - 1)) ||
+            (i == (S4_OFFSET + S4_LEN - 1)) ||
+            (i == (S5_OFFSET + S5_LEN - 1)) ||
+            (i == (S6_OFFSET + S6_LEN - 1))) {
             leds[i] = CRGB::Green;
+            continue;
         }
+
+        leds[i] = CRGB::Blue;
     }
 
 
-while(1) {
+//while(0) {
     FastLED.show();
-delay(100);
-}
+Serial.println("x");
+delay(1000);
+//}
     
     set_default_patterns();
 }
@@ -264,13 +286,13 @@ delay(100);
 
 inline void loop_brightness()
 {
-    /*unsigned char brightness;
+    unsigned char brightness;
 
     brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
     if (brightness != g_brightness) {
         FastLED.setBrightness(brightness);
         g_brightness = brightness;
-    }*/
+    }
 }
 
 
@@ -310,7 +332,7 @@ inline void loop_serial() {
 
 
 inline void loop_speed() {
-    //g_speed = (analogRead(SPEED_PIN) >> 3);
+    g_speed = (analogRead(SPEED_PIN) >> 3);
 }
 
 inline void loop_pattern() {       
@@ -325,9 +347,9 @@ inline void loop_pattern() {
 }
 
 void loop() {
-    // loop_brightness();
+    loop_brightness();
     loop_serial();
-    // loop_speed();    
+    loop_speed();    
     loop_pattern();
 }
 
