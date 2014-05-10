@@ -134,20 +134,20 @@ const PatternInstance Pants_PatternInstances[] = {
     {Flicker_pat, 10000},
     {EMS_pat, 20000},
     {SymSimpleHSV_pat, 10000},
-    {SpinningRings_Loop2, 17000},
-    {SpinningRings_Loop1, 15000},
-    {ShootRings_Loop, 10000},
-    {RingsHSV_Loop, 10000},
-    {FaderPattern1_loop1, 5000},
-    {FaderPattern1_loop2_0, 5375},
-    {FaderPattern1_loop2_1, 5375},
-    {FaderPattern1_loop2_2, 5375},
-    {FaderPattern1_loop2_3, 5375},
-    {FaderPattern1_loop2_4, 5375},
+ // ?   {FaderPattern1_loop1, 5000},
+  //  {FaderPattern1_loop2_0, 5375},
+  //  {FaderPattern1_loop2_1, 5375},
+  //  {FaderPattern1_loop2_2, 5375},
+  //  {FaderPattern1_loop2_3, 5375},
+  //  {FaderPattern1_loop2_4, 5375},
     {FaderPattern1_loop2_5, 5375},
-    {FaderPattern1_loop2_6, 5375},
-    {FaderPattern1_loop2_7, 5375},
-    {FaderPattern1_loop3, 16000},
+  //  {FaderPattern1_loop2_6, 5375},
+   // {FaderPattern1_loop2_7, 5375},
+//    {FaderPattern1_loop3, 16000},
+    //{SpinningRings_Loop2, 17000},
+    //{SpinningRings_Loop1, 15000},
+    //{ShootRings_Loop, 10000},
+    //{RingsHSV_Loop, 10000},
 };
 
 // "Manager"
@@ -225,9 +225,15 @@ void setup()
     // extra pins: 21, 5
     leds2 = &(leds[N_LEDS/2]);
 
-    FastLED.setBrightness(255);
-    pinMode(DATA_PIN, OUTPUT);
-
+    FastLED.setBrightness(32);
+    pinMode(2, OUTPUT);
+    pinMode(14, OUTPUT);
+    pinMode(7, OUTPUT);
+    pinMode(8, OUTPUT);
+    pinMode(6, OUTPUT);
+    pinMode(20, OUTPUT);
+    pinMode(21, OUTPUT);
+    pinMode(5, OUTPUT);
     memset(leds, 0, sizeof(leds));
    FastLED.show();
 
@@ -341,8 +347,20 @@ inline void loop_pattern() {
     ++g_step;
     FastLED.show();
 
-    if (millis() > (g_pattern_last_switch_at + g_pattern_duration)) {
+    if (millis() > (g_pattern_last_switch_at + (2 * g_pattern_duration))) {
        advance_pattern(true);
+    }
+}
+
+void loop_buttons() {
+    if (digitalRead(18) == 0) {
+        delay(300);
+        advance_pattern(false);
+    }
+
+    if (digitalRead(19) == 0) {
+        delay(300);
+        advance_pattern(true);
     }
 }
 
@@ -350,6 +368,7 @@ void loop() {
     loop_brightness();
     loop_serial();
     loop_speed();    
+    loop_buttons();
     loop_pattern();
 }
 
