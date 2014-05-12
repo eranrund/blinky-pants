@@ -38,24 +38,30 @@ public:
     }
 
      void loop2(bool compl_colors, bool cos_sin1, bool interleave) {
+         loop2(compl_colors, cos_sin1, interleave, 0, N_LEDS, 0);
+        inc();
+        FastLED.delay(4);
+    }
+
+    
+
+     void loop2(bool compl_colors, bool cos_sin1, bool interleave, int start, unsigned int n_leds, int h_offset) {
          CHSV c1, c2;
         
-         c1 = CHSV(g_step >> 4, 255,
+         c1 = CHSV(h_offset + (g_step >> 4) % 255, 255,
             200 + (55 * sin(( (g_step % 150) * 2 * PI / 150))));  
          c2 = CHSV(
-                    (compl_colors ? 128 : 0) + (g_step >> 4), 255,
+                    h_offset + (compl_colors ? 128 : 0) + (g_step >> 4), 255,
                     200 + (-55 * (cos_sin1 ? sin : cos)( (g_step % 150) * 2 * PI / 150))
             );
 
 
 
-        for (unsigned int i = 0; i < N_LEDS / 2; ++i) {
-            leds[interleave ? i * 2 : i] = c1;
-            leds[interleave ? (i * 2) + 1 : i + (N_LEDS/2)] = c2;
+        for (unsigned int i = 0; i < n_leds / 2; ++i) {
+            leds[start + (interleave ? i * 2 : i)] = c1;
+            leds[start + (interleave ? (i * 2) + 1 : i + (n_leds/2))] = c2;
         }
 
-        inc();
-        FastLED.delay(4);
     }
 
     void loop3() {        

@@ -110,7 +110,19 @@ inline void FaderPattern1_loop2_1() { FaderPattern1.loop2(true, false, false); }
 inline void FaderPattern1_loop2_2() { FaderPattern1.loop2(false, true, false); }
 inline void FaderPattern1_loop2_3() { FaderPattern1.loop2(true, true, false); }
 inline void FaderPattern1_loop2_4() { FaderPattern1.loop2(false, false, true); }
-inline void FaderPattern1_loop2_5() { FaderPattern1.loop2(true, false, true); }
+inline void FaderPattern1_loop2_5() { 
+    FaderPattern1.loop2(true, false, true, S1_OFFSET, S1_LEN, 0);
+    FaderPattern1.loop2(true, false, true, S6_OFFSET, S6_LEN, 0);
+
+    FaderPattern1.loop2(true, false, true, S2_OFFSET, S2_LEN, 85);
+    FaderPattern1.loop2(true, false, true, S4_OFFSET, S4_LEN, 85);
+
+    FaderPattern1.loop2(true, false, true, S3_OFFSET, S3_LEN, 160);
+    FaderPattern1.loop2(true, false, true, S5_OFFSET, S5_LEN, 160);
+
+    FaderPattern1.inc();
+    FastLED.delay(4);
+}
 inline void FaderPattern1_loop2_6() { FaderPattern1.loop2(false, true, true); }
 inline void FaderPattern1_loop2_7() { FaderPattern1.loop2(true, true, true); }
 inline void FaderPattern1_loop3() { FaderPattern1.loop3(); }
@@ -121,26 +133,50 @@ inline void RandomMartch_pat();
 inline void Flame_pat();
 inline void Matrix_pat();
 
+inline void Fire_pat() 
+{
+    static byte h1[S1_LEN];
+    static byte h2[S2_LEN];
+    static byte h3[S3_LEN];
+    static byte h4[S4_LEN];
+    static byte h5[S5_LEN];
+    static byte h6[S6_LEN];
+    random16_add_entropy( random());
+
+    fire_pattern(h1, &(leds[S1_OFFSET]), S1_LEN);
+    fire_pattern(h2, &(leds[S2_OFFSET]), S2_LEN);
+    fire_pattern(h3, &(leds[S3_OFFSET]), S3_LEN);
+    fire_pattern(h4, &(leds[S4_OFFSET]), S4_LEN);
+    fire_pattern(h5, &(leds[S5_OFFSET]), S5_LEN);
+    fire_pattern(h6, &(leds[S6_OFFSET]), S6_LEN);
+
+
+    FastLED.delay(max(0, map(g_speed, 0, 0xff, 0, 150)));
+    FastLED.show();
+}
+
+
 const PatternInstance Pants_PatternInstances[] = {
-    {collision, 6000},
-    {brightTwinkle, 9000},
+///?    {collision, 6000},
+    {Fire_pat, 10000},
+    {brightTwinkle, 30000},
     {gradient, 7000},
     {colorExplosion, 5000},
     {traditionalColors, 5000},
-    {warmWhiteShimmer, 7000},
+//    {warmWhiteShimmer, 7000},
     {Matrix_pat, 15000},
     {Flame_pat, 7000},
     {RandomMartch_pat, 19000},            
     {Flicker_pat, 10000},
     {EMS_pat, 20000},
     {SymSimpleHSV_pat, 10000},
+    {FaderPattern1_loop2_5, 5375},
  // ?   {FaderPattern1_loop1, 5000},
   //  {FaderPattern1_loop2_0, 5375},
   //  {FaderPattern1_loop2_1, 5375},
   //  {FaderPattern1_loop2_2, 5375},
   //  {FaderPattern1_loop2_3, 5375},
   //  {FaderPattern1_loop2_4, 5375},
-    {FaderPattern1_loop2_5, 5375},
   //  {FaderPattern1_loop2_6, 5375},
    // {FaderPattern1_loop2_7, 5375},
 //    {FaderPattern1_loop3, 16000},

@@ -441,15 +441,15 @@ void brightTwinkle()
       // LEDs that light up); as time goes on, allow progressively more
       // colors, halting generation of new twinkles for last 100 counts.
       unsigned short maxLoops = 1200;
-      if (g_step < 400)
+      if (g_step < 200)
       {
         brightTwinkle_helper(0, 1, 0);  // only white for first 400 g_steps
       }
-      else if (g_step < 650)
+      else if (g_step < 250)
       {
         brightTwinkle_helper(0, 2, 0);  // white and red for next 250 counts
       }
-      else if (g_step < 900)
+      else if (g_step < 500)
       {
         brightTwinkle_helper(1, 2, 0);  // red, and green for next 250 counts
       }
@@ -561,7 +561,7 @@ void gradient()
   if (g_step == 249) {
       g_step = 0;
     }
-  speed_delay(0, 100);
+  speed_delay(0, 200);
 }
 
 
@@ -917,4 +917,91 @@ public:
         FastLED.delay(max(0, map(g_speed, 0, 0xff, 0, 80) + (30 * cos((g_step % 400) * 2 * PI / 400))));
     }
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Fire
+///////////////////////////////////////////////////////////////////////////////
+
+// By Mark Kriegsman, July 2012
+// http://pastebin.com/xYEpxqgq
+
+#define COOLING  85
+#define SPARKING 120
+
+
+// CRGB HeatColor( uint8_t temperature)
+// [to be included in the forthcoming FastLED v2.1]
+//
+// Approximates a 'black body radiation' spectrum for
+// a given 'heat' level.  This is useful for animations of 'fire'.
+// Heat is specified as an arbitrary scale from 0 (cool) to 255 (hot).
+// This is NOT a chromatically correct 'black body radiation'
+// spectrum, but it's surprisingly close, and it's extremely fast and small.
+//
+// On AVR/Arduino, this typically takes around 70 bytes of program memory,
+// versus 768 bytes for a full 256-entry RGB lookup table.
+ 
+CRGB HeatColor( uint8_t temperature)
+{
+  CRGB heatcolor;
+ 
+  // Scale 'heat' down from 0-255 to 0-191,
+  // which can then be easily divided into three
+  // equal 'thirds' of 64 units each.
+  uint8_t t192 = scale8_video( temperature, 192);
+ 
+  // calculate a value that ramps up from
+  // zero to 255 in each 'third' of the scale.
+  uint8_t heatramp = t192 & 0x3F; // 0..63
+  heatramp <<= 2; // scale up to 0..252
+ 
+  // now figure out which third of the spectrum we're in:
+  if( t192 & 0x80) {
+    // we're in the hottest third
+    heatcolor.r = 255; // full red
+    heatcolor.g = 255; // full green
+    heatcolor.b = heatramp; // ramp up blue
+   
+  } else if( t192 & 0x40 ) {
+    // we're in the middle third
+    heatcolor.r = 255; // full red
+    heatcolor.g = heatramp; // ramp up green
+    heatcolor.b = 0; // no blue
+   
+  } else {
+    // we're in the coolest third
+    heatcolor.r = heatramp; // ramp up red
+    heatcolor.g = 0; // no green
+    heatcolor.b = 0; // no blue
+  }
+ 
+  return heatcolor;
+}
+
+
+void fire_pattern(byte * heat, CRGB * _leds, unsigned short n_leds) {
+ 
+  // Step 1.  Cool down every cell a little
+    for( unsigned int i = 0; i < n_leds; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / n_leds) + 2));
+    }
+ 
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= n_leds - 3; k > 0; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+   
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( random8() < SPARKING ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160,255) );
+    }
+ 
+    // Step 4.  Map from heat cells to LED colors
+    for( unsigned int j = 0; j < n_leds; j++) {
+        _leds[n_leds - j - 1] = HeatColor( heat[j]);
+    }
+}
+
 
