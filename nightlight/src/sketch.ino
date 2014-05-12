@@ -59,7 +59,7 @@ void loop() {
         }
     }
 
-    if (state && !sensor_read && ((last_switched_at + 10000) < millis())) {
+    if (state && !sensor_read && ((last_switched_at + 60000) < millis())) {
         state = false;
         leds_off();
         Serial.println("OFF");
