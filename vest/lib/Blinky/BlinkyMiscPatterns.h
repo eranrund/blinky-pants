@@ -926,7 +926,7 @@ public:
 // By Mark Kriegsman, July 2012
 // http://pastebin.com/xYEpxqgq
 
-#define COOLING  85
+#define COOLING  55
 #define SPARKING 120
 
 
