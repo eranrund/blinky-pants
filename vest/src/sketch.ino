@@ -84,6 +84,7 @@ unsigned long g_pattern_duration = 0;
 unsigned long g_pattern_last_switch_at = 0;
 unsigned char g_num_patterns = 0;
 unsigned int g_step = 0;
+bool g_ext_ctrl_board_enable = false;
  
 
 
@@ -271,7 +272,11 @@ void setup()
     pinMode(21, OUTPUT);
     pinMode(5, OUTPUT);
     memset(leds, 0, sizeof(leds));
-   FastLED.show();
+    FastLED.show();
+
+    pinMode(3, INPUT_PULLUP);
+    delay(50);
+    g_ext_ctrl_board_enable = digitalRead(3) == 0;
 
    pinMode(18, INPUT_PULLUP);
    pinMode(19, INPUT_PULLUP);
@@ -330,7 +335,12 @@ inline void loop_brightness()
 {
     unsigned char brightness;
 
-    brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
+    if (g_ext_ctrl_board_enable) {
+        brightness = (unsigned char) (analogRead(BRIGHTNESS_PIN) >> 2);
+    } else {
+        brightness = 128;
+    }
+
     if (brightness != g_brightness) {
         FastLED.setBrightness(brightness);
         g_brightness = brightness;
@@ -357,6 +367,9 @@ inline void loop_serial() {
                 Serial.print("Brightness: ");
                 Serial.println(g_brightness);
 
+                Serial.print("Ctrlboard: ");
+                Serial.println(g_ext_ctrl_board_enable);
+
                 //Serial.print("Free mem: ");
                 //Serial.println(freeMemory());
                 break;
@@ -374,7 +387,11 @@ inline void loop_serial() {
 
 
 inline void loop_speed() {
-    g_speed = (analogRead(SPEED_PIN) >> 3);
+    if (g_ext_ctrl_board_enable) {
+        g_speed = (analogRead(SPEED_PIN) >> 3);
+    } else {
+        g_speed = 128;
+    }
 }
 
 inline void loop_pattern() {       
