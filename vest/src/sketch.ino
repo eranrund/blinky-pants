@@ -11,12 +11,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 // strips
-#define S1_LEN 35
+#define S1_LEN 34
 #define S2_LEN 38
-#define S3_LEN 40
-#define S4_LEN 40
+#define S3_LEN 39 
+#define S4_LEN 39
 #define S5_LEN 38
-#define S6_LEN 35
+#define S6_LEN 34
 
 #define S1_OFFSET 0
 #define S2_OFFSET (S1_OFFSET + S1_LEN)
@@ -318,7 +318,7 @@ void setup()
     }
 
 
-//while(0) {
+//while(1) {
     FastLED.show();
 Serial.println("x");
 delay(1000);
