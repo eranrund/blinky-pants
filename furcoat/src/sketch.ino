@@ -33,7 +33,6 @@ void setup()
     FastLED.addLeds<WS2812B, 8, GRB>(&(leds[0 + N_OUTER1]), N_INNER1); // inner1
     FastLED.addLeds<WS2812B, 10, GRB>(&(leds[0 + N_OUTER1 + N_INNER1]), N_INNER2); // inner2
     FastLED.addLeds<WS2812B, 16, GRB>(&(leds[0 + N_OUTER1 + N_INNER1 + N_INNER2]), N_OUTER2); // outer2
-    //FastLED.setBrightness(g_sw ? 40 : 100);
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Red;
@@ -366,10 +365,38 @@ public:
 };
 CollisionPattern CollisionPattern;
 
+class MatrixPattern : public BasePattern {
+public:
+    MatrixPattern() : BasePattern(0xffffffff) {
+    }
+
+    void loop() {
+        int thishue = 95 - 10;
+        int thissat = 255;
+        int rand = random(0, 100);
+
+         if ((rand > 90) || (step == 0)) {
+            leds[N_LEDS - 1] = CHSV(thishue + random(0, 32), thissat, 255);
+         }
+         else {leds[N_LEDS - 1] = CHSV(thishue, thissat, 0);}
+
+         copy_led_array();
+         for(int i = N_LEDS - 1; i != 0; i-- ) {
+            leds[i - 1].r = ledsX[i][0];
+            leds[i - 1].g = ledsX[i][1];
+            leds[i - 1].b = ledsX[i][2];    
+        }
+
+        BasePattern::loop();
+        FastLED.show();
+        delay(65);
+    }
+} MatrixPattern;
+
 
 void loop() {
     static unsigned long last_switch_at = 0;
-    static unsigned char pattern = 1;
+    static unsigned char pattern = 4;
     unsigned long pattern_time = 0;
     
     switch (pattern) {
@@ -392,11 +419,16 @@ void loop() {
           CollisionPattern.loop();
           pattern_time = 8000;
           break;
+
+        case 4:
+         MatrixPattern.loop();
+         pattern_time = 8000;
+         break; 
     }
 
 
     if (millis() > (last_switch_at + pattern_time)) {
-        pattern = (pattern + 1) % 4;
+        pattern = (pattern + 1) % 5;
         last_switch_at = millis();
     }
 }
