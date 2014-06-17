@@ -22,12 +22,20 @@ CRGB ledsX[N_LEDS];
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
  
 
-bool g_sw = false;
+unsigned long g_step = 0;
 
 void setup()
 {
     Serial.begin(9600);
     Serial.println("OK");
+
+    unsigned long seed = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        seed += analogRead(i);
+    }
+    randomSeed(seed);
+
 
     FastLED.addLeds<WS2812B, 9, GRB>(&(leds[0]), N_OUTER1); // outer1
     FastLED.addLeds<WS2812B, 8, GRB>(&(leds[0 + N_OUTER1]), N_INNER1); // inner1
@@ -116,12 +124,13 @@ public:
    void loop1() {
         for (int i = 0; i < N_LEDS; ++i) {
             leds[i] = CHSV(step >> 4, 255,
-                    200 + (55 * sin(( (step % 200) * 2 * PI / 200)))
+                map(sin8(step), 0, 0xff, 100, 0xff)
+                    //200 + (55 * sin(( (step % 200) * 2 * PI / 200)))
             );
         }
 
         inc();
-        delay(1);
+        FastLED.delay(1);
     }
 
     void loop2() {
@@ -148,7 +157,7 @@ public:
         }
 
         inc();
-        delay(4);
+        FastLED.delay(4);
     }
 
     void loop3() {        
@@ -178,9 +187,9 @@ public:
         leds2[0] = leds[0];
 
         inc();
-        delay(20 * sin( (step % 150) * 2*PI / 150 ) + 60);
+        FastLED.delay(20 * sin( (step % 150) * 2*PI / 150 ) + 60);
     }
-
+    
     void inc() {
         BasePattern::loop();
         FastLED.show();
@@ -195,6 +204,39 @@ public:
             balance_dir = !balance_dir;
         }
 
+    }
+
+    void loop4() {
+        static int hues[4];
+        static unsigned long last_change_at = 0;
+        unsigned long now = millis();
+
+        if ((g_step == 0) || ((now - last_change_at) > 2000)) {
+            hues[0] = random(0,255);
+            hues[1] = random(0,255);
+            hues[2] = random(0,255);
+            hues[3] = random(0,255);
+            last_change_at = now;
+        }
+
+        for (int i = 0; i < N_OUTER1; ++i) {
+            int brightness = sin8((now / 50) * i);
+            leds[i] = CHSV(hues[0], 255, brightness);
+        }
+        for (int i = 0; i < N_INNER1; ++i) {
+            int brightness = cos8((now / 20) * i);
+            leds[i + N_OUTER1] = CHSV(hues[1], 255, brightness);
+        }
+        for (int i = 0; i < N_INNER2; ++i) {
+            int brightness = cos8((now / 20) * i);
+            leds[i + N_OUTER1 + N_INNER1] = CHSV(hues[2], 255, brightness);
+        }
+        for (int i = 0; i < N_OUTER2; ++i) {
+            int brightness = sin8((now / 50) * i);
+            leds[i + N_OUTER1 + N_INNER1 + N_INNER2] = CHSV(hues[3], 255, brightness);
+        }
+
+        FastLED.show(); 
     }
 };
 FaderPattern1 FaderPattern1;
@@ -217,7 +259,7 @@ public:
             max_steps = step + 2;
         }
         FastLED.show();
-        delay(10);
+        FastLED.delay(10);
     }
 
     unsigned char collision()
@@ -365,9 +407,9 @@ public:
 };
 CollisionPattern CollisionPattern;
 
-class MatrixPattern : public BasePattern {
+class MatrixPattern {
 public:
-    MatrixPattern() : BasePattern(0xffffffff) {
+    MatrixPattern() {
     }
 
     void loop() {
@@ -375,7 +417,7 @@ public:
         int thissat = 255;
         int rand = random(0, 100);
 
-         if ((rand > 90) || (step == 0)) {
+         if ((rand > 90) || (g_step == 0)) {
             leds[N_LEDS - 1] = CHSV(thishue + random(0, 32), thissat, 255);
          }
          else {leds[N_LEDS - 1] = CHSV(thishue, thissat, 0);}
@@ -387,11 +429,26 @@ public:
             leds[i - 1].b = ledsX[i][2];    
         }
 
-        BasePattern::loop();
         FastLED.show();
-        delay(65);
+        FastLED.delay(65);
     }
 } MatrixPattern;
+
+void Flicker_pat() {
+  int random_bright = random(0, 255);
+  int random_delay = random(10,100);
+  int random_bool = random(0,random_bright);
+  if (random_bool < 10) {
+      CHSV c = CHSV(160, 50, random_bright);
+    for(int i = 0 ; i < N_LEDS; i++ ) {
+      leds[i] = c;
+    }
+      FastLED.delay(random_delay);
+      FastLED.show();
+    
+  }
+}
+
 
 
 void loop() {
@@ -424,11 +481,23 @@ void loop() {
          MatrixPattern.loop();
          pattern_time = 8000;
          break; 
+
+        case 5:
+         FaderPattern1.loop4();
+         pattern_time = 10000;
+         break;
+
+        case 6:
+         Flicker_pat();
+         pattern_time = 12000;
+         break;
     }
 
 
+    ++g_step;
     if (millis() > (last_switch_at + pattern_time)) {
-        pattern = (pattern + 1) % 5;
+        pattern = (pattern + 1) % 7;
         last_switch_at = millis();
+        g_step = 0;
     }
 }
