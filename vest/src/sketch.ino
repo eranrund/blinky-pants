@@ -156,9 +156,11 @@ inline void Fire_pat()
     FastLED.show();
 }
 
+void loop_color_palette();
 
 const PatternInstance Pants_PatternInstances[] = {
 ///?    {collision, 6000},
+    {loop_color_palette, 60000},
     {Fire_pat, 10000},
     {brightTwinkle, 30000},
     {gradient, 7000},

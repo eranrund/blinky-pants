@@ -17,9 +17,9 @@ class LPD8806Controller : public CLEDController {
 	class LPD8806_ADJUST {
 	public:
 		// LPD8806 spec wants the high bit of every rgb data byte sent out to be set.
-		__attribute__((always_inline)) inline static uint8_t adjust(register uint8_t data) { return ((data>>1) | 0x80) + ((data!=255) & 0x01); }
+		__attribute__((always_inline)) inline static uint8_t adjust(register uint8_t data) { return ((data>>1) | 0x80) + ((data && (data<254)) & 0x01); }
 		__attribute__((always_inline)) inline static void postBlock(int len) {
-			SPI::writeBytesValueRaw(0, ((len+63)>>6));
+			SPI::writeBytesValueRaw(0, ((len*3+63)>>6));
 		}
 
 	};
@@ -35,7 +35,7 @@ class LPD8806Controller : public CLEDController {
 	}
 
 	void clearLine(int nLeds) {
-		int n = ((nLeds  + 63) >> 6);
+		int n = ((nLeds*3  + 63) >> 6);
 		mSPI.writeBytesValue(0, n);
 	}
 public:
@@ -115,6 +115,9 @@ public:
 	}
 #endif
 };
+
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint8_t SPI_SPEED = DATA_RATE_MHZ(25)>
+class WS2803Controller : public WS2801Controller<DATA_PIN, CLOCK_PIN, RGB_ORDER, SPI_SPEED> {};
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
