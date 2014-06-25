@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include <avr/pgmspace.h>
+
 #include "hsv2rgb.h"
 #include "colorutils.h"
 
@@ -185,3 +187,114 @@ CRGB HeatColor( uint8_t temperature)
     
     return heatcolor;
 }
+
+
+
+CRGB ColorFromPalette( const CRGBPalette16& pal, uint8_t index, uint8_t brightness, TBlendType blendType)
+{
+    uint8_t hi4 = index >> 4;
+    uint8_t lo4 = index & 0x0F;
+    
+    //  CRGB rgb1 = pal[ hi4];
+    const CRGB* entry = &(pal[0]) + hi4;
+    uint8_t red1   = entry->red;
+    uint8_t green1 = entry->green;
+    uint8_t blue1  = entry->blue;
+    
+    uint8_t blend = lo4 && (blendType != NOBLEND);
+    
+    if( blend ) {
+        
+        if( hi4 == 15 ) {
+            entry = &(pal[0]);
+        } else {
+            entry++;
+        }
+        
+        uint8_t f2 = lo4 << 4;
+        uint8_t f1 = 256 - f2;
+        
+        //    rgb1.nscale8(f1);
+        red1   = scale8_LEAVING_R1_DIRTY( red1,   f1);
+        green1 = scale8_LEAVING_R1_DIRTY( green1, f1);
+        blue1  = scale8_LEAVING_R1_DIRTY( blue1,  f1);
+                
+        //    cleanup_R1();
+        
+        //    CRGB rgb2 = pal[ hi4];
+        //    rgb2.nscale8(f2);
+        uint8_t red2   = entry->red;
+        uint8_t green2 = entry->green;
+        uint8_t blue2  = entry->blue;
+        red2   = scale8_LEAVING_R1_DIRTY( red2,   f2);
+        green2 = scale8_LEAVING_R1_DIRTY( green2, f2);
+        blue2  = scale8_LEAVING_R1_DIRTY( blue2,  f2);
+        
+        cleanup_R1();
+        
+        // These sums can't overflow, so no qadd8 needed.
+        red1   += red2;
+        green1 += green2;
+        blue1  += blue2;
+
+    }
+    
+    if( brightness != 255) {
+        nscale8x3_video( red1, green1, blue1, brightness);
+    }
+    
+    return CRGB( red1, green1, blue1);  
+}
+
+
+CRGB ColorFromPalette( const CRGBPalette256& pal, uint8_t index, uint8_t brightness, TBlendType)
+{
+    const CRGB* entry = &(pal[0]) + index;
+
+    uint8_t red   = entry->red;
+    uint8_t green = entry->green;
+    uint8_t blue  = entry->blue;
+    
+    if( brightness != 255) {
+        nscale8x3_video( red, green, blue, brightness);
+    }
+    
+    return CRGB( red, green, blue);
+}
+
+
+void UpscalePalette(const CRGBPalette16& srcpal16, CRGBPalette256& destpal256)
+{
+    for( int i = 0; i < 256; i++) {
+        destpal256[(uint8_t)(i)] = ColorFromPalette( srcpal16, i);
+    }
+}
+
+void SetupPartyColors(CRGBPalette16& pal)
+{
+    fill_gradient( pal, 0, CHSV( HUE_PURPLE,255,255), 7, CHSV(HUE_YELLOW - 18,255,255), FORWARD_HUES);
+    fill_gradient( pal, 8, CHSV( HUE_ORANGE,255,255), 15, CHSV(HUE_BLUE + 18,255,255), BACKWARD_HUES);
+}
+
+void fill_palette(CRGB* L, uint16_t N, uint8_t startIndex, uint8_t incIndex,
+                  const CRGBPalette16& pal, uint8_t brightness, TBlendType blendType)
+{
+    uint8_t colorIndex = startIndex;
+    for( uint16_t i = 0; i < N; i++) {
+        L[i] = ColorFromPalette( pal, colorIndex, brightness, blendType);
+        colorIndex += incIndex;
+    }
+}
+
+
+void fill_palette(CRGB* L, uint16_t N, uint8_t startIndex, uint8_t incIndex,
+                  const CRGBPalette256& pal, uint8_t brightness, TBlendType blendType)
+{
+    uint8_t colorIndex = startIndex;
+    for( uint16_t i = 0; i < N; i++) {
+        L[i] = ColorFromPalette( pal, colorIndex, brightness, blendType);
+        colorIndex += incIndex;
+    }
+}
+
+
