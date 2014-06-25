@@ -33,7 +33,7 @@ void setup()
 
 
     FastLED.addLeds<WS2812B, 15, GRB>(&(leds[0]), N_LEDS).setCorrection( TypicalLEDStrip );;
-    FastLED.setBrightness(100);
+    FastLED.setBrightness(80);
 
     for (int i = 0; i < N_LEDS; ++i) {
         leds[i] = CRGB::Red;
@@ -687,7 +687,7 @@ void loop() {
 
         case 5:
            loop_palette();
-           pattern_time = 600000;
+           pattern_time = 60000;
            break;
     }
 
