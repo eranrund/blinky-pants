@@ -2050,126 +2050,6 @@ Source: HCPL7221.pdf</description>
 </deviceset>
 </devicesets>
 </library>
-<library name="NHD-C0220AA-FSW-FTW">
-<packages>
-<package name="NHD-C0220AA-FSW-FTW">
-<description>NHD-C0220AA-FSW-FTW
-
-http://www.newhavendisplay.com/specs/NHD-C0220AA-FSW-FTW.pdf
-
-COG (Chip-on-Glass) Liquid Crystal Display Module
-NHD  Newhaven Display
-C0220  COG, 2 lines x 20 characters
-AA  Model
-F  Transflective
-SW  Side White LED backlight
-F FSTN+
-T  12:00 View Angle
-W  Wide Temp (‐20°C ~ +70°C)
-RoHS Compliant
-www.newhavendisplay.com</description>
-<pad name="GND" x="23" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="V5" x="25" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="VDD" x="27" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="RS" x="29" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="R/W" x="31" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="E" x="33" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB0" x="35" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB1" x="37" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB2" x="39" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB3" x="41" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB4" x="43" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB5" x="45" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB6" x="47" y="16" drill="0.8" shape="long" rot="R90"/>
-<pad name="DB7" x="49" y="16" drill="0.8" shape="long" rot="R90"/>
-<wire x1="0" y1="18" x2="70" y2="18" width="0.127" layer="21"/>
-<wire x1="70" y1="18" x2="70" y2="0" width="0.127" layer="21"/>
-<wire x1="70" y1="0" x2="0" y2="0" width="0.127" layer="21"/>
-<wire x1="0" y1="0" x2="0" y2="18" width="0.127" layer="21"/>
-<hole x="3.22" y="15.27" drill="0.6"/>
-<hole x="3.22" y="2.57" drill="0.6"/>
-<hole x="67.07" y="2.57" drill="0.6"/>
-<hole x="67.07" y="15.27" drill="0.6"/>
-<pad name="K" x="75" y="3.7" drill="1.2" shape="long" rot="R180"/>
-<pad name="A" x="75" y="14.3" drill="1.2" shape="long" rot="R180"/>
-<wire x1="77" y1="18" x2="77" y2="0" width="0.127" layer="21" style="dashdot"/>
-<wire x1="70" y1="0" x2="77" y2="0" width="0.127" layer="21" style="dashdot"/>
-<wire x1="70" y1="18" x2="77" y2="18" width="0.127" layer="21" style="dashdot"/>
-</package>
-</packages>
-<symbols>
-<symbol name="NHD-C0220AA-FSW-FTW">
-<pin name="GND" x="-15.24" y="-10.414" length="middle" rot="R90"/>
-<pin name="V5" x="-12.7" y="-10.414" length="middle" rot="R90"/>
-<pin name="VDD" x="-10.16" y="-10.414" length="middle" rot="R90"/>
-<pin name="RS" x="-7.62" y="-10.414" length="middle" rot="R90"/>
-<pin name="R/W" x="-5.08" y="-10.414" length="middle" rot="R90"/>
-<pin name="E" x="-2.54" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB0" x="0" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB1" x="2.54" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB2" x="5.08" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB3" x="7.62" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB4" x="10.16" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB5" x="12.7" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB6" x="15.24" y="-10.414" length="middle" rot="R90"/>
-<pin name="DB7" x="17.78" y="-10.414" length="middle" rot="R90"/>
-<wire x1="-17.78" y1="-5.334" x2="20.32" y2="-5.334" width="0.254" layer="94"/>
-<wire x1="20.32" y1="-5.334" x2="20.32" y2="7.366" width="0.254" layer="94"/>
-<wire x1="20.32" y1="7.366" x2="-17.78" y2="7.366" width="0.254" layer="94"/>
-<wire x1="-17.78" y1="7.366" x2="-17.78" y2="-5.334" width="0.254" layer="94"/>
-<text x="-17.78" y="7.366" size="1.27" layer="95">&gt;NAME</text>
-<pin name="K" x="-23.114" y="0" length="middle"/>
-<pin name="A" x="-23.114" y="2.54" length="middle"/>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="NHD-C0220AA-FSW-FTW" prefix="LCD">
-<description>NHD-C0220AA-FSW-FTW
-
-http://www.newhavendisplay.com/specs/NHD-C0220AA-FSW-FTW.pdf
-
-COG (Chip-on-Glass) Liquid Crystal Display Module
-NHD  Newhaven Display
-C0220  COG, 2 lines x 20 characters
-AA  Model
-F  Transflective
-SW  Side White LED backlight
-F FSTN+
-T  12:00 View Angle
-W  Wide Temp (‐20°C ~ +70°C)
-RoHS Compliant
-www.newhavendisplay.com</description>
-<gates>
-<gate name="G$1" symbol="NHD-C0220AA-FSW-FTW" x="20.32" y="-25.4"/>
-</gates>
-<devices>
-<device name="" package="NHD-C0220AA-FSW-FTW">
-<connects>
-<connect gate="G$1" pin="A" pad="A"/>
-<connect gate="G$1" pin="DB0" pad="DB0"/>
-<connect gate="G$1" pin="DB1" pad="DB1"/>
-<connect gate="G$1" pin="DB2" pad="DB2"/>
-<connect gate="G$1" pin="DB3" pad="DB3"/>
-<connect gate="G$1" pin="DB4" pad="DB4"/>
-<connect gate="G$1" pin="DB5" pad="DB5"/>
-<connect gate="G$1" pin="DB6" pad="DB6"/>
-<connect gate="G$1" pin="DB7" pad="DB7"/>
-<connect gate="G$1" pin="E" pad="E"/>
-<connect gate="G$1" pin="GND" pad="GND"/>
-<connect gate="G$1" pin="K" pad="K"/>
-<connect gate="G$1" pin="R/W" pad="R/W"/>
-<connect gate="G$1" pin="RS" pad="RS"/>
-<connect gate="G$1" pin="V5" pad="V5"/>
-<connect gate="G$1" pin="VDD" pad="VDD"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 </libraries>
 <attributes>
 </attributes>
@@ -2232,7 +2112,6 @@ www.newhavendisplay.com</description>
 <part name="H2" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
 <part name="H3" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
 <part name="H4" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
-<part name="LCD1" library="NHD-C0220AA-FSW-FTW" deviceset="NHD-C0220AA-FSW-FTW" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -2291,7 +2170,6 @@ www.newhavendisplay.com</description>
 <instance part="H2" gate="G$1" x="99.06" y="132.08"/>
 <instance part="H3" gate="G$1" x="104.14" y="132.08"/>
 <instance part="H4" gate="G$1" x="104.14" y="127"/>
-<instance part="LCD1" gate="G$1" x="350.52" y="7.62"/>
 </instances>
 <busses>
 </busses>

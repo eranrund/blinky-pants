@@ -2067,7 +2067,7 @@ Based on the following sources:
 <part name="U$5" library="keves" deviceset="B3J-XX00-1LED" device=""/>
 <part name="U$6" library="keves" deviceset="B3J-XX00-1LED" device=""/>
 <part name="U$1" library="keves" deviceset="B3J-XX00-1LED" device=""/>
-<part name="R1" library="pot-alps" deviceset="POT_US" device="VERTICAL_PS" value="10kB"/>
+<part name="R1" library="pot-alps" deviceset="POT_US" device="VERTICAL_PS" value="10kB (688-RK09D1130C2P)"/>
 <part name="R12" library="pot-alps" deviceset="POT_US" device="VERTICAL_PS" value="10kB"/>
 <part name="R10" library="pot-alps" deviceset="POT_US" device="VERTICAL_PS" value="10kB"/>
 <part name="R8" library="pot-alps" deviceset="POT_US" device="VERTICAL_PS" value="10kB"/>

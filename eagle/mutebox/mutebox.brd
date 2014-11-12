@@ -631,7 +631,7 @@ Please make sure your boards conform to these design rules.</description>
 <element name="U$5" library="keves" package="B3J-XX00-1LED" value="B3J-XX00-1LED" x="70.358" y="9.906"/>
 <element name="U$6" library="keves" package="B3J-XX00-1LED" value="B3J-XX00-1LED" x="84.328" y="9.906"/>
 <element name="U$1" library="keves" package="B3J-XX00-1LED" value="B3J-XX00-1LED" x="14.478" y="9.906"/>
-<element name="R1" library="pot-alps" package="ALPS_POT_VERTICAL_PS" value="10kB" x="14.478" y="48.006" rot="R180"/>
+<element name="R1" library="pot-alps" package="ALPS_POT_VERTICAL_PS" value="10kB (688-RK09D1130C2P)" x="14.478" y="48.006" rot="R180"/>
 <element name="R12" library="pot-alps" package="ALPS_POT_VERTICAL_PS" value="10kB" x="84.328" y="32.766" rot="R180"/>
 <element name="R10" library="pot-alps" package="ALPS_POT_VERTICAL_PS" value="10kB" x="70.358" y="32.766" rot="R180"/>
 <element name="R8" library="pot-alps" package="ALPS_POT_VERTICAL_PS" value="10kB" x="56.388" y="32.766" rot="R180"/>
