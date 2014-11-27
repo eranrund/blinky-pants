@@ -3988,6 +3988,10 @@ Low profile connectors, straight&lt;p&gt;
 <part name="R14" library="microbuilder" deviceset="RESISTOR" device="_0603" value="1K"/>
 <part name="R15" library="microbuilder" deviceset="RESISTOR" device="_0603" value="1K"/>
 <part name="CONN_LCD" library="con-harting-ml" deviceset="ML16" device=""/>
+<part name="H5" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
+<part name="H6" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
+<part name="H7" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
+<part name="H8" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
 </parts>
 <sheets>
 <sheet>
@@ -4107,6 +4111,10 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="R14" gate="G$1" x="256.54" y="-53.34" rot="R90"/>
 <instance part="R15" gate="G$1" x="264.16" y="-53.34" rot="R90"/>
 <instance part="CONN_LCD" gate="1" x="342.9" y="5.08"/>
+<instance part="H5" gate="G$1" x="99.06" y="137.16"/>
+<instance part="H6" gate="G$1" x="104.14" y="137.16"/>
+<instance part="H7" gate="G$1" x="99.06" y="121.92"/>
+<instance part="H8" gate="G$1" x="104.14" y="121.92"/>
 </instances>
 <busses>
 </busses>
