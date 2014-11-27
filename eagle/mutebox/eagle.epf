@@ -339,6 +339,11 @@ UsedLibrary="C:/Program Files (x86)/EAGLE-6.3.0/lbr/xilinx-xc9.lbr"
 UsedLibrary="C:/Program Files (x86)/EAGLE-6.3.0/lbr/xilinx-xcv.lbr"
 UsedLibrary="C:/Program Files (x86)/EAGLE-6.3.0/lbr/zetex.lbr"
 UsedLibrary="C:/Program Files (x86)/EAGLE-6.3.0/lbr/zilog.lbr"
+UsedLibrary="z:/eagle/common/keves.lbr"
+UsedLibrary="Z:/Downloads/STM32F4-DISCOVERY.lbr"
+UsedLibrary="Z:/eagle/common/microbuilder.lbr"
+UsedLibrary="//vmware-host/Shared Folders/Downloads/6n138.lbr"
+UsedLibrary="//vmware-host/Shared Folders/Downloads/NHD-C0220AA-FSW-FTW.lbr"
 
 [Win_1]
 Type="Control Panel"
