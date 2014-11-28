@@ -3979,8 +3979,6 @@ Low profile connectors, straight&lt;p&gt;
 <part name="U$63" library="microbuilder" deviceset="5.0V" device=""/>
 <part name="U$64" library="microbuilder" deviceset="3.3V" device=""/>
 <part name="VR2" library="microbuilder" deviceset="TRIMPOT" device="10K_BOURNS" value="10K 3303W-3-103E"/>
-<part name="U$65" library="microbuilder" deviceset="5.0V" device=""/>
-<part name="U$66" library="microbuilder" deviceset="GND" device=""/>
 <part name="IC5" library="74xx-eu" deviceset="74*595" device="D" technology="HC"/>
 <part name="C3" library="microbuilder" deviceset="CAP_CERAMIC" device="0603" value="100nF"/>
 <part name="U$67" library="microbuilder" deviceset="GND" device=""/>
@@ -3992,6 +3990,8 @@ Low profile connectors, straight&lt;p&gt;
 <part name="H6" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
 <part name="H7" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
 <part name="H8" library="holes" deviceset="MOUNT-HOLE" device="3.3"/>
+<part name="U$65" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$66" library="microbuilder" deviceset="5.0V" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -4101,8 +4101,6 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="U$63" gate="G$1" x="302.26" y="-25.4" rot="R90"/>
 <instance part="U$64" gate="G$1" x="312.42" y="-25.4" rot="R270"/>
 <instance part="VR2" gate="G$1" x="337.82" y="48.26" rot="R270"/>
-<instance part="U$65" gate="G$1" x="325.12" y="48.26" rot="R90"/>
-<instance part="U$66" gate="G$1" x="350.52" y="48.26" rot="R90"/>
 <instance part="IC5" gate="A" x="350.52" y="-38.1"/>
 <instance part="IC5" gate="P" x="350.52" y="-60.96" rot="R90"/>
 <instance part="C3" gate="G$1" x="347.98" y="-66.04" rot="R270"/>
@@ -4115,6 +4113,8 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="H6" gate="G$1" x="104.14" y="137.16"/>
 <instance part="H7" gate="G$1" x="99.06" y="121.92"/>
 <instance part="H8" gate="G$1" x="104.14" y="121.92"/>
+<instance part="U$65" gate="G$1" x="325.12" y="48.26" rot="R270"/>
+<instance part="U$66" gate="G$1" x="203.2" y="22.86" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -4300,17 +4300,17 @@ Low profile connectors, straight&lt;p&gt;
 <junction x="335.28" y="-5.08"/>
 </segment>
 <segment>
-<pinref part="VR2" gate="G$1" pin="E"/>
-<wire x1="342.9" y1="48.26" x2="347.98" y2="48.26" width="0.1524" layer="91"/>
-<pinref part="U$66" gate="G$1" pin="GND"/>
-</segment>
-<segment>
 <pinref part="C3" gate="G$1" pin="P$1"/>
 <wire x1="353.06" y1="-66.04" x2="358.14" y2="-66.04" width="0.1524" layer="91"/>
 <pinref part="U$67" gate="G$1" pin="GND"/>
 <pinref part="IC5" gate="P" pin="GND"/>
 <wire x1="358.14" y1="-66.04" x2="358.14" y2="-60.96" width="0.1524" layer="91"/>
 <junction x="358.14" y="-66.04"/>
+</segment>
+<segment>
+<pinref part="VR2" gate="G$1" pin="A"/>
+<wire x1="332.74" y1="48.26" x2="327.66" y2="48.26" width="0.1524" layer="91"/>
+<pinref part="U$65" gate="G$1" pin="GND"/>
 </segment>
 </net>
 <net name="N$1" class="0">
@@ -4454,9 +4454,9 @@ Low profile connectors, straight&lt;p&gt;
 <pinref part="U$63" gate="G$1" pin="5.0V"/>
 </segment>
 <segment>
-<pinref part="VR2" gate="G$1" pin="A"/>
-<wire x1="332.74" y1="48.26" x2="327.66" y2="48.26" width="0.1524" layer="91"/>
-<pinref part="U$65" gate="G$1" pin="5.0V"/>
+<pinref part="U$66" gate="G$1" pin="5.0V"/>
+<pinref part="U$1" gate="G$1" pin="PA9"/>
+<wire x1="200.66" y1="22.86" x2="193.04" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="MIDI_OUT1" class="0">
@@ -4852,6 +4852,11 @@ Low profile connectors, straight&lt;p&gt;
 <junction x="264.16" y="-58.42"/>
 <pinref part="R14" gate="G$1" pin="1"/>
 <junction x="256.54" y="-58.42"/>
+</segment>
+<segment>
+<pinref part="VR2" gate="G$1" pin="E"/>
+<wire x1="342.9" y1="48.26" x2="347.98" y2="48.26" width="0.1524" layer="91"/>
+<label x="345.44" y="48.26" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCD_RS" class="0">
