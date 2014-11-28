@@ -2424,6 +2424,8 @@ Low profile connectors, straight&lt;p&gt;
 <part name="P+14" library="microbuilder" deviceset="VCC" device=""/>
 <part name="R34" library="microbuilder" deviceset="RESISTOR" device="_0603" value="10K"/>
 <part name="P+12" library="microbuilder" deviceset="VCC" device=""/>
+<part name="H5" library="holes" deviceset="MOUNT-HOLE" device="3.2"/>
+<part name="H6" library="holes" deviceset="MOUNT-HOLE" device="3.2"/>
 </parts>
 <sheets>
 <sheet>
@@ -2505,6 +2507,8 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="P_CONN" gate="G$1" x="20.32" y="17.78" rot="R180"/>
 <instance part="R33" gate="G$1" x="48.26" y="20.32"/>
 <instance part="U$27" gate="G$1" x="58.42" y="20.32" rot="R270"/>
+<instance part="H5" gate="G$1" x="109.22" y="-86.36"/>
+<instance part="H6" gate="G$1" x="109.22" y="-91.44"/>
 </instances>
 <busses>
 </busses>
