@@ -4722,6 +4722,19 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <part name="R18" library="microbuilder" deviceset="RESISTOR" device="_0603" value="0"/>
 <part name="U$96" library="microbuilder" deviceset="GND" device=""/>
 <part name="R27" library="microbuilder" deviceset="RESISTOR" device="_0603" value="120"/>
+<part name="U$97" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$98" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="U$99" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$100" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$101" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$102" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$103" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$104" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$105" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$106" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="U$107" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="U$108" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="U$109" library="microbuilder" deviceset="3.3V" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -6032,6 +6045,19 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <instance part="U$69" gate="G$1" x="45.72" y="-12.7" rot="R270"/>
 <instance part="U$70" gate="G$1" x="45.72" y="-30.48" rot="R270"/>
 <instance part="U$71" gate="G$1" x="45.72" y="-48.26" rot="R270"/>
+<instance part="U$97" gate="G$1" x="27.94" y="12.7" rot="R90"/>
+<instance part="U$98" gate="G$1" x="7.62" y="12.7" rot="R90"/>
+<instance part="U$99" gate="G$1" x="53.34" y="-12.7" rot="R90"/>
+<instance part="U$100" gate="G$1" x="53.34" y="-30.48" rot="R90"/>
+<instance part="U$101" gate="G$1" x="53.34" y="-48.26" rot="R90"/>
+<instance part="U$102" gate="G$1" x="15.24" y="-71.12" rot="R90"/>
+<instance part="U$103" gate="G$1" x="15.24" y="-50.8" rot="R90"/>
+<instance part="U$104" gate="G$1" x="15.24" y="-30.48" rot="R90"/>
+<instance part="U$105" gate="G$1" x="15.24" y="-12.7" rot="R90"/>
+<instance part="U$106" gate="G$1" x="0" y="-12.7" rot="R90"/>
+<instance part="U$107" gate="G$1" x="0" y="-30.48" rot="R90"/>
+<instance part="U$108" gate="G$1" x="0" y="-50.8" rot="R90"/>
+<instance part="U$109" gate="G$1" x="0" y="-71.12" rot="R90"/>
 </instances>
 <busses>
 </busses>
@@ -6169,6 +6195,39 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <wire x1="177.8" y1="-25.4" x2="177.8" y2="-30.48" width="0.2032" layer="91"/>
 <junction x="177.8" y="-30.48"/>
 </segment>
+<segment>
+<pinref part="U$42" gate="G$1" pin="A"/>
+<pinref part="U$97" gate="G$1" pin="GND"/>
+<wire x1="25.4" y1="12.7" x2="22.86" y2="12.7" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U$69" gate="G$1" pin="A"/>
+<pinref part="U$99" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$70" gate="G$1" pin="A"/>
+<pinref part="U$100" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$71" gate="G$1" pin="A"/>
+<pinref part="U$101" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$68" gate="G$1" pin="A"/>
+<pinref part="U$102" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$67" gate="G$1" pin="A"/>
+<pinref part="U$103" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$66" gate="G$1" pin="A"/>
+<pinref part="U$104" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="U$65" gate="G$1" pin="A"/>
+<pinref part="U$105" gate="G$1" pin="GND"/>
+</segment>
 </net>
 <net name="N$9" class="0">
 <segment>
@@ -6276,14 +6335,14 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <junction x="190.5" y="25.4"/>
 </segment>
 </net>
-<net name="N$32" class="0">
+<net name="BTN_LED7" class="0">
 <segment>
 <pinref part="U$47" gate="G$1" pin="LED1+"/>
 <wire x1="185.42" y1="20.32" x2="193.04" y2="20.32" width="0.2032" layer="91"/>
 <label x="187.96" y="20.32" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$33" class="0">
+<net name="BTN_LED8" class="0">
 <segment>
 <pinref part="U$47" gate="G$1" pin="LED2+"/>
 <wire x1="185.42" y1="15.24" x2="193.04" y2="15.24" width="0.2032" layer="91"/>
@@ -6316,14 +6375,14 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <junction x="190.5" y="-2.54"/>
 </segment>
 </net>
-<net name="N$37" class="0">
+<net name="BTN_LED9" class="0">
 <segment>
 <pinref part="U$51" gate="G$1" pin="LED1+"/>
 <wire x1="185.42" y1="-7.62" x2="193.04" y2="-7.62" width="0.2032" layer="91"/>
 <label x="187.96" y="-7.62" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$38" class="0">
+<net name="BTN_LED10" class="0">
 <segment>
 <pinref part="U$51" gate="G$1" pin="LED2+"/>
 <wire x1="185.42" y1="-12.7" x2="193.04" y2="-12.7" width="0.2032" layer="91"/>
@@ -6396,18 +6455,41 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <junction x="190.5" y="-33.02"/>
 </segment>
 </net>
-<net name="N$47" class="0">
+<net name="BTN_LED11" class="0">
 <segment>
 <pinref part="U$59" gate="G$1" pin="LED1+"/>
 <wire x1="185.42" y1="-38.1" x2="193.04" y2="-38.1" width="0.2032" layer="91"/>
 <label x="187.96" y="-38.1" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$48" class="0">
+<net name="BTN_LED12" class="0">
 <segment>
 <pinref part="U$59" gate="G$1" pin="LED2+"/>
 <wire x1="185.42" y1="-43.18" x2="193.04" y2="-43.18" width="0.2032" layer="91"/>
 <label x="187.96" y="-43.18" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="3.3V" class="0">
+<segment>
+<pinref part="U$42" gate="G$1" pin="E"/>
+<pinref part="U$98" gate="G$1" pin="3.3V"/>
+<wire x1="10.16" y1="12.7" x2="12.7" y2="12.7" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U$65" gate="G$1" pin="E"/>
+<pinref part="U$106" gate="G$1" pin="3.3V"/>
+</segment>
+<segment>
+<pinref part="U$66" gate="G$1" pin="E"/>
+<pinref part="U$107" gate="G$1" pin="3.3V"/>
+</segment>
+<segment>
+<pinref part="U$67" gate="G$1" pin="E"/>
+<pinref part="U$108" gate="G$1" pin="3.3V"/>
+</segment>
+<segment>
+<pinref part="U$68" gate="G$1" pin="E"/>
+<pinref part="U$109" gate="G$1" pin="3.3V"/>
 </segment>
 </net>
 </nets>
