@@ -145,6 +145,8 @@
 <layer number="229" name="229bmp" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="230" name="230bmp" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="231" name="231bmp" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="232" name="Eagle3D_PG2" color="14" fill="2" visible="yes" active="yes"/>
+<layer number="233" name="Eagle3D_PG3" color="14" fill="4" visible="yes" active="yes"/>
 <layer number="248" name="Housing" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="249" name="Edge" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
@@ -4432,6 +4434,112 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 </deviceset>
 </devicesets>
 </library>
+<library name="omc">
+<description>&lt;b&gt;OpenMulticopter library&lt;/b&gt;&lt;p&gt;
+
+Visit www.openmulticopter.org for more information on our project.</description>
+<packages>
+<package name="SO8">
+<description>Complient to the IPC7351 standard (SOIC127P600X175-8M)</description>
+<wire x1="2.54" y1="1.95" x2="2.54" y2="-1.55" width="0.2032" layer="51"/>
+<wire x1="2.54" y1="-1.55" x2="2.54" y2="-1.95" width="0.2032" layer="51"/>
+<wire x1="2.54" y1="-1.95" x2="-2.54" y2="-1.95" width="0.2032" layer="51"/>
+<wire x1="-2.54" y1="-1.95" x2="-2.54" y2="-1.55" width="0.2032" layer="51"/>
+<wire x1="-2.54" y1="-1.55" x2="-2.54" y2="1.95" width="0.2032" layer="51"/>
+<wire x1="-2.54" y1="1.95" x2="2.54" y2="1.95" width="0.2032" layer="51"/>
+<wire x1="2.54" y1="-1.55" x2="-2.54" y2="-1.55" width="0.2032" layer="51"/>
+<wire x1="-2.4384" y1="-1.95" x2="-2.54" y2="-1.95" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-1.95" x2="-2.54" y2="-1.55" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-1.55" x2="-2.54" y2="1.95" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="1.95" x2="-2.4384" y2="1.95" width="0.1524" layer="21"/>
+<wire x1="-0.1016" y1="1.95" x2="0.1016" y2="1.95" width="0.1524" layer="21"/>
+<wire x1="-0.1016" y1="-1.95" x2="0.1016" y2="-1.95" width="0.1524" layer="21"/>
+<wire x1="2.4384" y1="-1.95" x2="2.54" y2="-1.95" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-1.95" x2="2.54" y2="-1.55" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="-1.55" x2="2.54" y2="1.9304" width="0.1524" layer="21"/>
+<wire x1="2.54" y1="1.9304" x2="2.4384" y2="1.9304" width="0.1524" layer="21"/>
+<wire x1="-2.54" y1="-1.55" x2="2.54" y2="-1.55" width="0.1524" layer="21"/>
+<wire x1="-1.3716" y1="1.95" x2="-1.1684" y2="1.95" width="0.1524" layer="21"/>
+<wire x1="1.1684" y1="1.95" x2="1.3716" y2="1.95" width="0.1524" layer="21"/>
+<wire x1="1.1684" y1="-1.95" x2="1.3716" y2="-1.95" width="0.1524" layer="21"/>
+<wire x1="-1.3716" y1="-1.95" x2="-1.1684" y2="-1.95" width="0.1524" layer="21"/>
+<wire x1="-2.33" y1="3.775" x2="2.33" y2="3.775" width="0.0508" layer="39"/>
+<wire x1="2.33" y1="3.775" x2="2.33" y2="-3.775" width="0.0508" layer="39"/>
+<wire x1="2.33" y1="-3.775" x2="-2.33" y2="-3.775" width="0.0508" layer="39"/>
+<wire x1="-2.33" y1="-3.775" x2="-2.33" y2="3.775" width="0.0508" layer="39"/>
+<smd name="2" x="-0.635" y="-2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="7" x="-0.635" y="2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="1" x="-1.905" y="-2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="3" x="0.635" y="-2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="4" x="1.905" y="-2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="8" x="-1.905" y="2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="6" x="0.635" y="2.8" dx="0.65" dy="1.75" layer="1"/>
+<smd name="5" x="1.905" y="2.8" dx="0.65" dy="1.75" layer="1"/>
+<text x="-2.921" y="-1.651" size="0.635" layer="25" font="vector" ratio="16" rot="R90">&gt;NAME</text>
+<text x="3.556" y="-1.651" size="0.635" layer="27" font="vector" ratio="16" rot="R90">&gt;VALUE</text>
+<rectangle x1="-2.115" y1="-3" x2="-1.695" y2="-1.95" layer="51"/>
+<rectangle x1="0.425" y1="1.95" x2="0.845" y2="3" layer="51"/>
+<rectangle x1="1.695" y1="1.95" x2="2.115" y2="3" layer="51"/>
+<rectangle x1="-0.845" y1="1.95" x2="-0.425" y2="3" layer="51"/>
+<rectangle x1="-2.115" y1="1.95" x2="-1.695" y2="3" layer="51"/>
+<rectangle x1="-0.845" y1="-3" x2="-0.425" y2="-1.95" layer="51"/>
+<rectangle x1="0.425" y1="-3" x2="0.845" y2="-1.95" layer="51"/>
+<rectangle x1="1.695" y1="-3" x2="2.115" y2="-1.95" layer="51"/>
+</package>
+</packages>
+<symbols>
+<symbol name="SN65HVD230">
+<wire x1="-10.16" y1="12.7" x2="10.16" y2="12.7" width="0.254" layer="94"/>
+<wire x1="10.16" y1="12.7" x2="10.16" y2="-12.7" width="0.254" layer="94"/>
+<wire x1="10.16" y1="-12.7" x2="-10.16" y2="-12.7" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-12.7" x2="-10.16" y2="12.7" width="0.254" layer="94"/>
+<text x="-10.16" y="13.97" size="1.778" layer="95">&gt;NAME</text>
+<text x="-10.16" y="-15.24" size="1.778" layer="96">&gt;VALUE</text>
+<pin name="TXD" x="-12.7" y="2.54" length="short" direction="in"/>
+<pin name="RS" x="-12.7" y="-10.16" length="short" direction="in"/>
+<pin name="CANL" x="12.7" y="-2.54" length="short" rot="R180"/>
+<pin name="CANH" x="12.7" y="2.54" length="short" rot="R180"/>
+<pin name="VREF" x="12.7" y="-10.16" length="short" direction="out" rot="R180"/>
+<pin name="RXD" x="-12.7" y="-2.54" length="short" direction="out"/>
+<pin name="GND" x="12.7" y="10.16" length="short" direction="pwr" rot="R180"/>
+<pin name="VCC" x="-12.7" y="10.16" length="short" direction="pwr"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="SN65HVD230" prefix="D">
+<description>&lt;h4&gt;SN65HVD230 - 3.3V CAN Transceiver&lt;/h4&gt;
+
+&lt;p&gt;
+- 3.3V operation&lt;br /&gt;
+- ISO 11898 compliant&lt;br /&gt;
+- up to 1Mbps&lt;br /&gt;
+- up to 120 nodes&lt;br /&gt;
+- listen only mode&lt;br /&gt;
+- slope control
+&lt;/p&gt;</description>
+<gates>
+<gate name="G$1" symbol="SN65HVD230" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SO8">
+<connects>
+<connect gate="G$1" pin="CANH" pad="7"/>
+<connect gate="G$1" pin="CANL" pad="6"/>
+<connect gate="G$1" pin="GND" pad="2"/>
+<connect gate="G$1" pin="RS" pad="8"/>
+<connect gate="G$1" pin="RXD" pad="4"/>
+<connect gate="G$1" pin="TXD" pad="1"/>
+<connect gate="G$1" pin="VCC" pad="3"/>
+<connect gate="G$1" pin="VREF" pad="5"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -4607,10 +4715,18 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <part name="R25" library="microbuilder" deviceset="RESISTOR" device="_0603" value="10k"/>
 <part name="R26" library="microbuilder" deviceset="RESISTOR" device="_0603" value="10k"/>
 <part name="U$93" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="D2" library="omc" deviceset="SN65HVD230" device=""/>
+<part name="C25" library="microbuilder" deviceset="CAP_CERAMIC" device="0603" value="0.1uF"/>
+<part name="U$94" library="microbuilder" deviceset="GND" device=""/>
+<part name="U$95" library="microbuilder" deviceset="3.3V" device=""/>
+<part name="R18" library="microbuilder" deviceset="RESISTOR" device="_0603" value="0"/>
+<part name="U$96" library="microbuilder" deviceset="GND" device=""/>
+<part name="R27" library="microbuilder" deviceset="RESISTOR" device="_0603" value="120"/>
 </parts>
 <sheets>
 <sheet>
 <plain>
+<text x="106.68" y="43.18" size="1.778" layer="97">PD10 in Midibox!!</text>
 </plain>
 <instances>
 <instance part="U$1" gate="G$1" x="50.8" y="71.12"/>
@@ -4675,10 +4791,10 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <instance part="U$32" gate="G$1" x="149.86" y="20.32"/>
 <instance part="U$33" gate="G$1" x="129.54" y="20.32"/>
 <instance part="C13" gate="G$1" x="154.94" y="25.4"/>
-<instance part="JP4" gate="A" x="109.22" y="20.32"/>
-<instance part="U$34" gate="G$1" x="99.06" y="35.56"/>
-<instance part="U$35" gate="G$1" x="91.44" y="35.56" rot="R180"/>
-<instance part="C14" gate="G$1" x="96.52" y="27.94" rot="R90"/>
+<instance part="JP4" gate="A" x="134.62" y="-2.54"/>
+<instance part="U$34" gate="G$1" x="124.46" y="12.7"/>
+<instance part="U$35" gate="G$1" x="116.84" y="12.7" rot="R180"/>
+<instance part="C14" gate="G$1" x="121.92" y="5.08" rot="R90"/>
 <instance part="D1" gate="A" x="-48.26" y="83.82"/>
 <instance part="D1" gate="B" x="-48.26" y="78.74"/>
 <instance part="D1" gate="C" x="-48.26" y="73.66"/>
@@ -4736,6 +4852,13 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <instance part="R25" gate="G$1" x="-60.96" y="17.78" rot="R90"/>
 <instance part="R26" gate="G$1" x="-63.5" y="17.78" rot="R90"/>
 <instance part="U$93" gate="G$1" x="-63.5" y="27.94"/>
+<instance part="D2" gate="G$1" x="55.88" y="-5.08"/>
+<instance part="C25" gate="G$1" x="58.42" y="12.7" rot="R90"/>
+<instance part="U$94" gate="G$1" x="73.66" y="12.7" rot="R90"/>
+<instance part="U$95" gate="G$1" x="35.56" y="12.7" rot="R90"/>
+<instance part="R18" gate="G$1" x="35.56" y="-15.24" rot="R180"/>
+<instance part="U$96" gate="G$1" x="25.4" y="-15.24" rot="R270"/>
+<instance part="R27" gate="G$1" x="78.74" y="-5.08" rot="R270"/>
 </instances>
 <busses>
 </busses>
@@ -4808,10 +4931,10 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <segment>
 <pinref part="JP4" gate="A" pin="1"/>
 <pinref part="U$34" gate="G$1" pin="3.3V"/>
-<wire x1="106.68" y1="27.94" x2="99.06" y2="27.94" width="0.2032" layer="91"/>
-<wire x1="99.06" y1="27.94" x2="99.06" y2="33.02" width="0.2032" layer="91"/>
+<wire x1="132.08" y1="5.08" x2="124.46" y2="5.08" width="0.2032" layer="91"/>
+<wire x1="124.46" y1="5.08" x2="124.46" y2="10.16" width="0.2032" layer="91"/>
 <pinref part="C14" gate="G$1" pin="P$2"/>
-<junction x="99.06" y="27.94"/>
+<junction x="124.46" y="5.08"/>
 </segment>
 <segment>
 <pinref part="IC3" gate="A" pin="SCL"/>
@@ -4885,6 +5008,15 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <pinref part="R25" gate="G$1" pin="2"/>
 <junction x="-60.96" y="22.86"/>
 <junction x="-63.5" y="22.86"/>
+</segment>
+<segment>
+<pinref part="C25" gate="G$1" pin="P$1"/>
+<pinref part="U$95" gate="G$1" pin="3.3V"/>
+<wire x1="53.34" y1="12.7" x2="43.18" y2="12.7" width="0.2032" layer="91"/>
+<pinref part="D2" gate="G$1" pin="VCC"/>
+<wire x1="43.18" y1="12.7" x2="38.1" y2="12.7" width="0.2032" layer="91"/>
+<wire x1="43.18" y1="5.08" x2="43.18" y2="12.7" width="0.2032" layer="91"/>
+<junction x="43.18" y="12.7"/>
 </segment>
 </net>
 <net name="N$1" class="0">
@@ -5040,11 +5172,11 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <segment>
 <pinref part="JP4" gate="A" pin="2"/>
 <pinref part="U$35" gate="G$1" pin="GND"/>
-<wire x1="106.68" y1="25.4" x2="91.44" y2="25.4" width="0.2032" layer="91"/>
-<wire x1="91.44" y1="25.4" x2="91.44" y2="27.94" width="0.2032" layer="91"/>
+<wire x1="132.08" y1="2.54" x2="116.84" y2="2.54" width="0.2032" layer="91"/>
+<wire x1="116.84" y1="2.54" x2="116.84" y2="5.08" width="0.2032" layer="91"/>
 <pinref part="C14" gate="G$1" pin="P$1"/>
-<junction x="91.44" y="27.94"/>
-<wire x1="91.44" y1="27.94" x2="91.44" y2="33.02" width="0.2032" layer="91"/>
+<junction x="116.84" y="5.08"/>
+<wire x1="116.84" y1="5.08" x2="116.84" y2="10.16" width="0.2032" layer="91"/>
 </segment>
 <segment>
 <pinref part="RN1" gate="G$1" pin="1"/>
@@ -5101,6 +5233,20 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <segment>
 <pinref part="U$87" gate="A" pin="CLK_INH"/>
 <pinref part="U$91" gate="G$1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="D2" gate="G$1" pin="GND"/>
+<wire x1="68.58" y1="5.08" x2="68.58" y2="12.7" width="0.2032" layer="91"/>
+<pinref part="C25" gate="G$1" pin="P$2"/>
+<wire x1="68.58" y1="12.7" x2="60.96" y2="12.7" width="0.2032" layer="91"/>
+<pinref part="U$94" gate="G$1" pin="GND"/>
+<wire x1="71.12" y1="12.7" x2="68.58" y2="12.7" width="0.2032" layer="91"/>
+<junction x="68.58" y="12.7"/>
+</segment>
+<segment>
+<pinref part="U$96" gate="G$1" pin="GND"/>
+<pinref part="R18" gate="G$1" pin="2"/>
+<wire x1="30.48" y1="-15.24" x2="27.94" y2="-15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="NRST" class="0">
@@ -5292,29 +5438,29 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <net name="LCD_CLK" class="0">
 <segment>
 <pinref part="JP4" gate="A" pin="3"/>
-<wire x1="106.68" y1="22.86" x2="91.44" y2="22.86" width="0.2032" layer="91"/>
-<label x="88.9" y="22.86" size="1.778" layer="95"/>
+<wire x1="132.08" y1="0" x2="116.84" y2="0" width="0.2032" layer="91"/>
+<label x="114.3" y="0" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCD_MOSI" class="0">
 <segment>
 <pinref part="JP4" gate="A" pin="4"/>
-<wire x1="106.68" y1="20.32" x2="91.44" y2="20.32" width="0.2032" layer="91"/>
-<label x="88.9" y="20.32" size="1.778" layer="95"/>
+<wire x1="132.08" y1="-2.54" x2="116.84" y2="-2.54" width="0.2032" layer="91"/>
+<label x="114.3" y="-2.54" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCS_CS" class="0">
 <segment>
 <pinref part="JP4" gate="A" pin="5"/>
-<wire x1="106.68" y1="17.78" x2="91.44" y2="17.78" width="0.2032" layer="91"/>
-<label x="88.9" y="17.78" size="1.778" layer="95"/>
+<wire x1="132.08" y1="-5.08" x2="116.84" y2="-5.08" width="0.2032" layer="91"/>
+<label x="114.3" y="-5.08" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCD_DC" class="0">
 <segment>
 <pinref part="JP4" gate="A" pin="6"/>
-<wire x1="106.68" y1="15.24" x2="91.44" y2="15.24" width="0.2032" layer="91"/>
-<label x="88.9" y="15.24" size="1.778" layer="95"/>
+<wire x1="132.08" y1="-7.62" x2="116.84" y2="-7.62" width="0.2032" layer="91"/>
+<label x="114.3" y="-7.62" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$14" class="0">
@@ -5473,7 +5619,7 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <wire x1="-96.52" y1="71.12" x2="-96.52" y2="76.2" width="0.2032" layer="91"/>
 </segment>
 </net>
-<net name="N$58" class="0">
+<net name="SPI2_CLK" class="0">
 <segment>
 <pinref part="IC3" gate="A" pin="SCK"/>
 <wire x1="-96.52" y1="81.28" x2="-106.68" y2="81.28" width="0.2032" layer="91"/>
@@ -5490,9 +5636,15 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <pinref part="U$87" gate="A" pin="CLK"/>
 <wire x1="-106.68" y1="5.08" x2="-96.52" y2="5.08" width="0.2032" layer="91"/>
 <junction x="-106.68" y="45.72"/>
+<label x="-104.14" y="137.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PB13/I2S2_CK"/>
+<wire x1="81.28" y1="35.56" x2="93.98" y2="35.56" width="0.2032" layer="91"/>
+<label x="91.44" y="35.56" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$59" class="0">
+<net name="SPI2_RC1" class="0">
 <segment>
 <pinref part="IC1" gate="A" pin="RCK"/>
 <wire x1="-96.52" y1="53.34" x2="-109.22" y2="53.34" width="0.2032" layer="91"/>
@@ -5505,10 +5657,12 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <pinref part="IC4" gate="A" pin="RCK"/>
 <wire x1="-96.52" y1="124.46" x2="-109.22" y2="124.46" width="0.2032" layer="91"/>
 <junction x="-109.22" y="124.46"/>
-<pinref part="U$87" gate="A" pin="SH/!LD"/>
-<wire x1="-96.52" y1="7.62" x2="-109.22" y2="7.62" width="0.2032" layer="91"/>
-<wire x1="-109.22" y1="7.62" x2="-109.22" y2="53.34" width="0.2032" layer="91"/>
-<junction x="-109.22" y="53.34"/>
+<label x="-106.68" y="137.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PB12/I2S2_WS"/>
+<wire x1="81.28" y1="33.02" x2="93.98" y2="33.02" width="0.2032" layer="91"/>
+<label x="91.44" y="33.02" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$60" class="0">
@@ -5640,18 +5794,30 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <label x="-60.96" y="134.62" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$13" class="0">
+<net name="SPI2_MOSI" class="0">
 <segment>
 <pinref part="IC1" gate="A" pin="SER"/>
 <wire x1="-96.52" y1="40.64" x2="-111.76" y2="40.64" width="0.2032" layer="91"/>
 <wire x1="-111.76" y1="40.64" x2="-111.76" y2="139.7" width="0.2032" layer="91"/>
+<label x="-109.22" y="137.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PB15/I2S2_SD"/>
+<wire x1="81.28" y1="40.64" x2="93.98" y2="40.64" width="0.2032" layer="91"/>
+<label x="91.44" y="40.64" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$27" class="0">
+<net name="SPI2_MISO" class="0">
 <segment>
 <pinref part="U$87" gate="A" pin="QH"/>
 <wire x1="-96.52" y1="-2.54" x2="-114.3" y2="-2.54" width="0.2032" layer="91"/>
 <wire x1="-114.3" y1="-2.54" x2="-114.3" y2="139.7" width="0.2032" layer="91"/>
+<label x="-111.76" y="137.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PB14/I2S2_XD"/>
+<wire x1="81.28" y1="38.1" x2="93.98" y2="38.1" width="0.2032" layer="91"/>
+<label x="91.44" y="38.1" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$28" class="0">
@@ -5748,6 +5914,64 @@ This is the mechanical footprint for a #4 phillips button head screw. Use the ke
 <wire x1="-45.72" y1="-7.62" x2="-38.1" y2="-7.62" width="0.2032" layer="91"/>
 <wire x1="-45.72" y1="12.7" x2="-45.72" y2="-7.62" width="0.2032" layer="91"/>
 <junction x="-45.72" y="-7.62"/>
+</segment>
+</net>
+<net name="N$73" class="0">
+<segment>
+<pinref part="D2" gate="G$1" pin="RS"/>
+<pinref part="R18" gate="G$1" pin="1"/>
+<wire x1="40.64" y1="-15.24" x2="43.18" y2="-15.24" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="CAN_L" class="0">
+<segment>
+<pinref part="D2" gate="G$1" pin="CANL"/>
+<wire x1="68.58" y1="-7.62" x2="73.66" y2="-7.62" width="0.2032" layer="91"/>
+<wire x1="73.66" y1="-7.62" x2="73.66" y2="-10.16" width="0.2032" layer="91"/>
+<wire x1="73.66" y1="-10.16" x2="78.74" y2="-10.16" width="0.2032" layer="91"/>
+<pinref part="R27" gate="G$1" pin="2"/>
+<junction x="78.74" y="-10.16"/>
+<wire x1="78.74" y1="-10.16" x2="91.44" y2="-10.16" width="0.2032" layer="91"/>
+<label x="86.36" y="-10.16" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="CAN_H" class="0">
+<segment>
+<pinref part="D2" gate="G$1" pin="CANH"/>
+<wire x1="68.58" y1="-2.54" x2="73.66" y2="-2.54" width="0.2032" layer="91"/>
+<wire x1="73.66" y1="-2.54" x2="73.66" y2="0" width="0.2032" layer="91"/>
+<wire x1="73.66" y1="0" x2="78.74" y2="0" width="0.2032" layer="91"/>
+<pinref part="R27" gate="G$1" pin="1"/>
+<junction x="78.74" y="0"/>
+<wire x1="78.74" y1="0" x2="91.44" y2="0" width="0.2032" layer="91"/>
+<label x="86.36" y="0" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="CAN_TX" class="0">
+<segment>
+<pinref part="D2" gate="G$1" pin="TXD"/>
+<wire x1="43.18" y1="-2.54" x2="27.94" y2="-2.54" width="0.2032" layer="91"/>
+<label x="27.94" y="-2.54" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="CAN_RX" class="0">
+<segment>
+<pinref part="D2" gate="G$1" pin="RXD"/>
+<wire x1="43.18" y1="-7.62" x2="27.94" y2="-7.62" width="0.2032" layer="91"/>
+<label x="27.94" y="-7.62" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="SPI2_RC2" class="0">
+<segment>
+<pinref part="U$87" gate="A" pin="SH/!LD"/>
+<wire x1="-96.52" y1="7.62" x2="-116.84" y2="7.62" width="0.2032" layer="91"/>
+<wire x1="-116.84" y1="7.62" x2="-116.84" y2="139.7" width="0.2032" layer="91"/>
+<label x="-114.3" y="137.16" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="PC6/I2S2_MCK"/>
+<wire x1="81.28" y1="43.18" x2="93.98" y2="43.18" width="0.2032" layer="91"/>
+<label x="91.44" y="43.18" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
