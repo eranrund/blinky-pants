@@ -4465,7 +4465,7 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <part name="R16" library="microbuilder" deviceset="RESISTOR" device="0603" value="22"/>
 <part name="JP1" library="microbuilder" deviceset="JUMPER2" device=""/>
 <part name="U$20" library="microbuilder" deviceset="5.0V" device=""/>
-<part name="JP2" library="microbuilder" deviceset="HEADER-1X5" device="76MIL"/>
+<part name="JTAG" library="microbuilder" deviceset="HEADER-1X5" device="76MIL" value="jtag"/>
 <part name="U$21" library="microbuilder" deviceset="3.3V" device=""/>
 <part name="U$22" library="microbuilder" deviceset="GND" device=""/>
 <part name="JP3" library="microbuilder" deviceset="HEADER-1X2" device="ROUND"/>
@@ -4666,7 +4666,7 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <instance part="R16" gate="G$1" x="129.54" y="109.22"/>
 <instance part="JP1" gate="A" x="129.54" y="124.46"/>
 <instance part="U$20" gate="G$1" x="121.92" y="121.92" rot="R90"/>
-<instance part="JP2" gate="A" x="180.34" y="111.76"/>
+<instance part="JTAG" gate="A" x="180.34" y="111.76"/>
 <instance part="U$21" gate="G$1" x="167.64" y="116.84" rot="R90"/>
 <instance part="U$22" gate="G$1" x="167.64" y="106.68" rot="R270"/>
 <instance part="JP3" gate="G$1" x="180.34" y="93.98"/>
@@ -4809,7 +4809,7 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <wire x1="86.36" y1="116.84" x2="88.9" y2="116.84" width="0.2032" layer="91"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="1"/>
+<pinref part="JTAG" gate="A" pin="1"/>
 <pinref part="U$21" gate="G$1" pin="3.3V"/>
 <wire x1="170.18" y1="116.84" x2="177.8" y2="116.84" width="0.1524" layer="91"/>
 </segment>
@@ -5052,7 +5052,7 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <junction x="177.8" y="35.56"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="5"/>
+<pinref part="JTAG" gate="A" pin="5"/>
 <pinref part="U$22" gate="G$1" pin="GND"/>
 <wire x1="177.8" y1="106.68" x2="170.18" y2="106.68" width="0.2032" layer="91"/>
 </segment>
@@ -5160,11 +5160,6 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <label x="12.7" y="96.52" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="4"/>
-<wire x1="177.8" y1="109.22" x2="170.18" y2="109.22" width="0.2032" layer="91"/>
-<label x="165.1" y="109.22" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="C16" gate="G$1" pin="P$1"/>
 <wire x1="154.94" y1="30.48" x2="154.94" y2="33.02" width="0.2032" layer="91"/>
 <wire x1="154.94" y1="33.02" x2="149.86" y2="33.02" width="0.2032" layer="91"/>
@@ -5175,6 +5170,11 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <junction x="147.32" y="33.02"/>
 <wire x1="147.32" y1="33.02" x2="139.7" y2="33.02" width="0.2032" layer="91"/>
 <label x="139.7" y="33.02" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="JTAG" gate="A" pin="2"/>
+<wire x1="177.8" y1="114.3" x2="170.18" y2="114.3" width="0.2032" layer="91"/>
+<label x="162.56" y="114.3" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="AVDD" class="0">
@@ -5211,9 +5211,9 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <label x="83.82" y="66.04" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="3"/>
-<wire x1="177.8" y1="111.76" x2="170.18" y2="111.76" width="0.2032" layer="91"/>
-<label x="162.56" y="111.76" size="1.778" layer="95"/>
+<pinref part="JTAG" gate="A" pin="4"/>
+<wire x1="177.8" y1="109.22" x2="170.18" y2="109.22" width="0.2032" layer="91"/>
+<label x="165.1" y="109.22" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -5230,9 +5230,9 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <label x="83.82" y="73.66" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="JP2" gate="A" pin="2"/>
-<wire x1="177.8" y1="114.3" x2="170.18" y2="114.3" width="0.2032" layer="91"/>
-<label x="162.56" y="114.3" size="1.778" layer="95"/>
+<pinref part="JTAG" gate="A" pin="3"/>
+<wire x1="177.8" y1="111.76" x2="170.18" y2="111.76" width="0.2032" layer="91"/>
+<label x="162.56" y="111.76" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -5344,6 +5344,11 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <label x="114.3" y="0" size="1.778" layer="95"/>
 <pinref part="LCD1" gate="G$1" pin="CLK"/>
 </segment>
+<segment>
+<pinref part="CPU1" gate="G$1" pin="PB3/JTDO"/>
+<wire x1="81.28" y1="88.9" x2="96.52" y2="88.9" width="0.2032" layer="91"/>
+<label x="88.9" y="88.9" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="LCD_MOSI" class="0">
 <segment>
@@ -5351,12 +5356,10 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <label x="114.3" y="-2.54" size="1.778" layer="95"/>
 <pinref part="LCD1" gate="G$1" pin="MOSI"/>
 </segment>
-</net>
-<net name="LCS_CS" class="0">
 <segment>
-<wire x1="132.08" y1="-5.08" x2="116.84" y2="-5.08" width="0.2032" layer="91"/>
-<label x="114.3" y="-5.08" size="1.778" layer="95"/>
-<pinref part="LCD1" gate="G$1" pin="CS"/>
+<pinref part="CPU1" gate="G$1" pin="PB5"/>
+<wire x1="81.28" y1="93.98" x2="96.52" y2="93.98" width="0.2032" layer="91"/>
+<label x="88.9" y="93.98" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="LCD_DC" class="0">
@@ -5364,6 +5367,11 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <wire x1="132.08" y1="-7.62" x2="116.84" y2="-7.62" width="0.2032" layer="91"/>
 <label x="114.3" y="-7.62" size="1.778" layer="95"/>
 <pinref part="LCD1" gate="G$1" pin="DC"/>
+</segment>
+<segment>
+<pinref part="CPU1" gate="G$1" pin="PB7"/>
+<wire x1="81.28" y1="99.06" x2="96.52" y2="99.06" width="0.2032" layer="91"/>
+<label x="88.9" y="99.06" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$14" class="0">
@@ -5955,6 +5963,25 @@ Visit www.openmulticopter.org for more information on our project.</description>
 <pinref part="CPU1" gate="G$1" pin="PA7/SPI1_MOSI"/>
 <wire x1="22.86" y1="55.88" x2="2.54" y2="55.88" width="0.2032" layer="91"/>
 <label x="0" y="55.88" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LCD_MISO_UNUSED" class="0">
+<segment>
+<pinref part="CPU1" gate="G$1" pin="PB4/JTRST"/>
+<wire x1="81.28" y1="91.44" x2="96.52" y2="91.44" width="0.2032" layer="91"/>
+<label x="88.9" y="91.44" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="LCD_CS" class="0">
+<segment>
+<pinref part="CPU1" gate="G$1" pin="PB6"/>
+<wire x1="81.28" y1="96.52" x2="96.52" y2="96.52" width="0.2032" layer="91"/>
+<label x="88.9" y="96.52" size="1.778" layer="95"/>
+</segment>
+<segment>
+<wire x1="132.08" y1="-5.08" x2="116.84" y2="-5.08" width="0.2032" layer="91"/>
+<label x="114.3" y="-5.08" size="1.778" layer="95"/>
+<pinref part="LCD1" gate="G$1" pin="CS"/>
 </segment>
 </net>
 </nets>
