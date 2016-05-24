@@ -1,0 +1,2 @@
+mv /Applications/Arduino.app /Applications/Arduino-new.app
+mv /Applications/Arduino-old.app /Applications/Arduino.app
