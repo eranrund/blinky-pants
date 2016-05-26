@@ -1,31 +1,61 @@
-#include "FastSPI_LED2.h"
+#include <FastLED.h>
 
-#define N_LEDS 30
-
-CRGB leds[N_LEDS];
+#define LED_PIN     2
+#define NUM_LEDS    30
+#define N_LEDS NUM_LEDS
+#define BRIGHTNESS  64
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
+CRGB leds[NUM_LEDS];
 CRGB * leds2 = (leds + (N_LEDS/2));
 
 CRGB ledsX[N_LEDS];
 #define copy_led_array() memcpy(ledsX, leds, sizeof(leds))
 #define uncopy_led_array() memcpy(leds, ledsX, sizeof(leds))
- 
+
+#define UPDATES_PER_SECOND 100
+
+// This example shows several ways to set up and use 'palettes' of colors
+// with FastLED.
+//
+// These compact palettes provide an easy way to re-colorize your
+// animation on the fly, quickly, easily, and with low overhead.
+//
+// USING palettes is MUCH simpler in practice than in theory, so first just
+// run this sketch, and watch the pretty lights as you then read through
+// the code.  Although this sketch has eight (or more) different color schemes,
+// the entire sketch compiles down to about 6.5K on AVR.
+//
+// FastLED provides a few pre-configured color palettes, and makes it
+// extremely easy to make up your own color schemes with palettes.
+//
+// Some notes on the more abstract 'theory and practice' of
+// FastLED compact palettes are at the bottom of this file.
 
 
-void setup()
-{
-    Serial.begin(9600);
-    Serial.println("OK");
 
-    pinMode(2, INPUT_PULLUP);
-    delay(30);
-    FastLED.addLeds<WS2812B, 2, GRB>(leds, N_LEDS);
-    FastLED.setBrightness(65);
+CRGBPalette16 currentPalette;
+TBlendType    currentBlending;
 
-    for (int i = 0; i < N_LEDS; ++i) {
-        leds[i] = CRGB::Red;
-    }
-    FastLED.show();
+extern CRGBPalette16 myRedWhiteBluePalette;
+extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+
+
+void setup() {
+    delay( 1500 ); // power-up safety delay
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(  BRIGHTNESS );
+    
+    currentPalette = RainbowColors_p;
+    currentBlending = LINEARBLEND;
 }
+
+void ChangePalettePeriodically();
+void FillLEDsFromPaletteColors( uint8_t colorIndex);
+void SetupPurpleAndGreenPalette();
+void SetupTotallyRandomPalette();
+void SetupBlackAndWhiteStripedPalette();
+
 
 class StepGenerator {
 public:
@@ -352,11 +382,24 @@ public:
 };
 CollisionPattern CollisionPattern;
 
+void orig_loop()
+{
+    //ChangePalettePeriodically();
+    
+    static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
+    
+    FillLEDsFromPaletteColors( startIndex);
+    FastLED.show();
+    FastLED.delay(1000 / UPDATES_PER_SECOND);
+}
 
 void loop() {
     static unsigned long last_switch_at = 0;
     static unsigned char pattern = 1;
     unsigned long pattern_time = 0;
+     static uint8_t startIndex = 0;
+    startIndex = startIndex + 1; /* motion speed */
     
     switch (pattern) {
         case 0:
@@ -376,13 +419,107 @@ void loop() {
 
         case 3:
           CollisionPattern.loop();
-          pattern_time = 8000;
+          pattern_time = 1000;
           break;
+
+         case 4: currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; pattern_time = 10000; orig_loop(); break;
+          case 5: currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  pattern_time = 10000; orig_loop(); break;
+          case 6: currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; pattern_time = 10000; orig_loop(); break;
+          case 7: SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; pattern_time = 10000; orig_loop(); break;
+        case 8: currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; pattern_time = 10000; orig_loop(); break;
+
     }
 
 
     if (millis() > (last_switch_at + pattern_time)) {
-        pattern = (pattern + 1) % 4;
+        pattern = (pattern + 1) % 9;
         last_switch_at = millis();
     }
 }
+
+
+
+
+void FillLEDsFromPaletteColors( uint8_t colorIndex)
+{
+    uint8_t brightness = 255;
+    
+    for( int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
+        colorIndex += 3;
+    }
+}
+
+
+// There are several different palettes of colors demonstrated here.
+//
+// FastLED provides several 'preset' palettes: RainbowColors_p, RainbowStripeColors_p,
+// OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
+//
+// Additionally, you can manually define your own color palettes, or you can write
+// code that creates color palettes on the fly.  All are shown here.
+
+void ChangePalettePeriodically()
+{
+    uint8_t secondHand = (millis() / 1000) % 40;
+    static uint8_t lastSecond = 99;
+    
+    if( lastSecond != secondHand) {
+        lastSecond = secondHand;
+        if( secondHand ==  0)  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
+        if( secondHand == 10)  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
+        if( secondHand == 15)  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
+        if( secondHand == 20)  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
+        if( secondHand == 25)  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
+        if( secondHand == 35)  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
+
+    }
+}
+
+// This function fills the palette with totally random colors.
+void SetupTotallyRandomPalette()
+{
+    for( int i = 0; i < 16; i++) {
+        currentPalette[i] = CHSV( random8(), 255, random8());
+    }
+}
+
+
+// This function sets up a palette of purple and green stripes.
+void SetupPurpleAndGreenPalette()
+{
+    CRGB purple = CHSV( HUE_PURPLE, 255, 255);
+    CRGB green  = CHSV( HUE_GREEN, 255, 255);
+    CRGB black  = CRGB::Black;
+    
+    currentPalette = CRGBPalette16(
+                                   green,  green,  black,  black,
+                                   purple, purple, black,  black,
+                                   green,  green,  black,  black,
+                                   purple, purple, black,  black );
+}
+
+
+
+
+// Additionl notes on FastLED compact palettes:
+//
+// Normally, in computer graphics, the palette (or "color lookup table")
+// has 256 entries, each containing a specific 24-bit RGB color.  You can then
+// index into the color palette using a simple 8-bit (one byte) value.
+// A 256-entry color palette takes up 768 bytes of RAM, which on Arduino
+// is quite possibly "too many" bytes.
+//
+// FastLED does offer traditional 256-element palettes, for setups that
+// can afford the 768-byte cost in RAM.
+//
+// However, FastLED also offers a compact alternative.  FastLED offers
+// palettes that store 16 distinct entries, but can be accessed AS IF
+// they actually have 256 entries; this is accomplished by interpolating
+// between the 16 explicit entries to create fifteen intermediate palette
+// entries between each pair.
+//
+// So for example, if you set the first two explicit entries of a compact 
+// palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
+// the first sixteen entries from the virtual palette (of 256), you'd get
+// Green, followed by a smooth gradient from green-to-blue, and then Blue.
